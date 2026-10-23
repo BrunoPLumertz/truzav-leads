@@ -229,6 +229,17 @@ body.pmopen{overflow:hidden}
  .dhd,.doc .note{-webkit-print-color-adjust:exact;print-color-adjust:exact}
  .doc h2,.doc li,.doc tr{break-inside:avoid}
 }
+
+.fhd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.fhd h3{margin:0!important}
+.chk{font-size:14px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.chk input,.fres input{width:18px;height:18px;accent-color:var(--laranja);flex:none}
+.fres{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.fres.off{opacity:.55;cursor:default}
+.fres .cm small{margin-top:2px}
+.fmeta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:6px}.fmeta .tag{margin-top:0}
+.fmeta a{font-size:13px;color:var(--ot);font-weight:500}
+.b:disabled{opacity:.55;cursor:default}
+@media(max-width:700px){#findBtn span{display:none}}
 </style>
 </head>
 <body>
@@ -246,6 +257,7 @@ body.pmopen{overflow:hidden}
   <span class="total num" id="total"></span>
   <span class="count num" id="count"></span>
   <div class="sp"></div>
+  <button class="b" id="findBtn"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><span>Buscar negócios</span></button>
   <button class="b main" id="newBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Adicionar negócio</span></button>
 </header>
 <div class="goals" id="goals" aria-label="Metas"></div>
@@ -333,7 +345,7 @@ const touchedToday=it=>(it.hist||[]).some(e=>dayOf(e.d)===today()&&(e.t==="conta
 function descr(e){
   if(e.t==="status")return [`Etapa: ${LBL[e.from]||e.from} → ${LBL[e.to]||e.to}`,""];
   if(e.t==="contato")return [`${e.canal||"Contato"}${e.com?" com "+e.com:""}`,e.txt||""];
-  if(e.t==="add")return ["Adicionado à lista",""];
+  if(e.t==="add")return [e.txt?"Adicionado pela busca ("+e.txt+")":"Adicionado à lista",""];
   if(e.t==="proposta")return [`Proposta enviada: ${e.tipo}, ${money(e.valor)}`,""];
   return [e.txt||"",""];
 }
@@ -526,7 +538,7 @@ const SEG={
   obj:"Explicar cursos e turmas com clareza e facilitar a matrícula.",
   sec:["Cursos, turmas e horários","Como funciona o método","Depoimentos de alunos","Matrícula ou aula experimental pelo WhatsApp","Localização"],
   sug:["Página para cada curso, com público e duração","Destaque para as próximas turmas","Perguntas frequentes sobre matrícula e pagamento"]},
- beleza:{n:"Beleza (barbearia, salão)",k:["barbear","barber","salao","cabel","sobrancelha","manicure","unha","mega hair","mechas","maquiag","beauty","estetic center"],
+ beleza:{n:"Beleza (barbearia, salão)",k:["barbear","barber","salao","cabel","sobrancelha","manicure","unha","mega hair","mechas","maquiag","beauty","estetic center","estetica","cosmetic"],
   obj:"Fazer quem procura no Google encontrar você, ver o seu trabalho e marcar horário sem precisar perguntar tudo no direct.",
   sec:["Serviços com descrição e, se quiser, valores","Galeria de trabalhos","Profissionais da casa","Marcar horário pelo WhatsApp","Localização, horários e como chegar"],
   sug:["Se vocês já usam um app de agendamento, ligamos o botão direto nele","Fotos do Instagram aparecendo no site","Seção de primeira visita: o que esperar e como se preparar"]},
@@ -539,7 +551,7 @@ const SEG={
   obj:"Mostrar com clareza o que você faz e facilitar o contato de quem procura esse serviço.",
   sec:["O que você faz e para quem","Serviços explicados","Diferenciais e depoimentos","Contato pelo WhatsApp","Localização e horários, se atender no local"],
   sug:["Textos pensados para quem procura esse serviço no Google","Avaliações de clientes em destaque","Formulário simples que já chega organizado no WhatsApp"]}};
-const SEG_ORDER=["pet","juridico","construcao","alimentacao","fitness","automotivo","imobiliaria","educacao","beleza","saude"];
+const SEG_ORDER=["pet","juridico","construcao","alimentacao","fitness","automotivo","imobiliaria","educacao","saude","beleza"];
 const segOf=it=>{const t=norm((it.cat||"")+" "+it.name);return SEG_ORDER.find(k=>SEG[k].k.some(w=>t.includes(norm(w))))||"geral"};
 const SITU={"Sem site":"Hoje, quem procura vocês no Google encontra só o perfil do mapa. Não existe um lugar para conhecer o trabalho com calma antes de entrar em contato.",
  "Só Instagram":"Hoje a presença de vocês está no Instagram. Ele é ótimo para o dia a dia, mas aparece pouco no Google e as informações importantes se perdem entre as postagens.",
@@ -629,6 +641,94 @@ function proposal(){
   pm.append(side,main);editNote();
 }
 
+/* ===== Busca de negócios (OpenStreetMap, gratuita) ===== */
+const OSM_EP=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass.private.coffee/api/interpreter"];
+const RAMOS={
+ beleza:["Barbearias, salões e estética",['shop=hairdresser','shop=beauty','shop=cosmetics']],
+ automotivo:["Oficinas e serviços automotivos",['shop=car_repair','shop=tyres','shop=car_parts','amenity=car_wash']],
+ saude:["Clínicas, consultórios e dentistas",['amenity=clinic','amenity=doctors','amenity=dentist','healthcare=physiotherapist','healthcare=psychotherapist']],
+ pet:["Veterinárias e pet shops",['amenity=veterinary','shop=pet','shop=pet_grooming']],
+ alimentacao:["Padarias, confeitarias e cafés",['shop=bakery','shop=confectionery','shop=pastry','amenity=cafe']],
+ restaurantes:["Restaurantes e lanchonetes",['amenity=restaurant','amenity=fast_food','amenity=ice_cream']],
+ fitness:["Academias e estúdios",['leisure=fitness_centre','leisure=sports_centre','sport=yoga']],
+ juridico:["Advocacia e contabilidade",['office=lawyer','office=accountant','office=notary']],
+ imobiliaria:["Imobiliárias",['office=estate_agent']],
+ construcao:["Construção e arquitetura",['office=architect','craft=builder','shop=doityourself','shop=hardware']],
+ educacao:["Escolas, cursos e autoescolas",['amenity=driving_school','amenity=language_school','amenity=music_school','amenity=prep_school']],
+ lojas:["Lojas em geral",['shop=clothes','shop=shoes','shop=furniture','shop=florist','shop=gift','shop=jewelry','shop=optician','shop=mobile_phone','shop=variety_store']]};
+const CATN={hairdresser:"Salão de beleza",beauty:"Estética",cosmetics:"Cosméticos",car_repair:"Oficina mecânica",tyres:"Borracharia",car_parts:"Autopeças",car_wash:"Lavagem automotiva",
+ clinic:"Clínica",doctors:"Consultório médico",dentist:"Dentista",physiotherapist:"Fisioterapia",psychotherapist:"Psicologia",veterinary:"Clínica veterinária",pet:"Pet shop",pet_grooming:"Banho e tosa",
+ bakery:"Padaria",confectionery:"Confeitaria",pastry:"Confeitaria",cafe:"Café",restaurant:"Restaurante",fast_food:"Lanchonete",ice_cream:"Sorveteria",fitness_centre:"Academia",sports_centre:"Centro esportivo",yoga:"Estúdio de yoga",
+ lawyer:"Advocacia",accountant:"Contabilidade",notary:"Cartório",estate_agent:"Imobiliária",architect:"Arquitetura",builder:"Construtora",doityourself:"Material de construção",hardware:"Ferragem",
+ driving_school:"Autoescola",language_school:"Escola de idiomas",music_school:"Escola de música",prep_school:"Reforço escolar",
+ clothes:"Loja de roupas",shoes:"Calçados",furniture:"Móveis",florist:"Floricultura",gift:"Presentes",jewelry:"Joalheria",optician:"Ótica",mobile_phone:"Celulares e acessórios",variety_store:"Variedades"};
+let found=[],pick=new Set(),fstate={city:"Viamão",ramo:"beleza",onlyNo:true,busy:false,err:""};
+function osmQuery(city,tags){
+  const sel=tags.map(t=>{const [k,v]=t.split("=");return `nwr["${k}"="${v}"]["name"](area.a);`}).join("");
+  const c=city.replace(/"/g,"");
+  return `[out:json][timeout:25];area["name"="${c}"]["boundary"="administrative"]["admin_level"~"^(7|8)$"]->.a;(${sel});out center tags 200;`;
+}
+async function osmFetch(q){
+  let last;for(const ep of OSM_EP){try{const r=await fetch(ep,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+    if(!r.ok){last=new Error("HTTP "+r.status);continue}return await r.json()}catch(e){last=e}}
+  throw last||new Error("sem resposta");
+}
+function fromOSM(e,city){
+  const t=e.tags||{},lat=e.lat??e.center?.lat,lng=e.lon??e.center?.lon;
+  const kv=Object.entries(t).find(([k,v])=>["shop","amenity","leisure","office","craft","healthcare","sport"].includes(k)&&CATN[v]);
+  let cat=kv?CATN[kv[1]]:"Comércio";if(kv&&kv[1]==="hairdresser"&&/barb/i.test(t.name))cat="Barbearia";
+  const site=t.website||t["contact:website"]||t.url||"",ig=t["contact:instagram"]||t.instagram||"",fb=t["contact:facebook"]||t.facebook||"";
+  const tipo=site?"Outro":ig?"Só Instagram":fb?"Só Facebook":"Sem site";
+  const addr=[[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(", "),t["addr:suburb"]].filter(Boolean).join(", ");
+  return {osm:e.type+"/"+e.id,name:t.name,cat,phone:t.phone||t["contact:phone"]||t["contact:mobile"]||t.mobile||"",site,tipo,addr,lat,lng,city};
+}
+const dist=(a,b,c,d)=>Math.hypot((a-c)*111e3,(b-d)*96e3);
+const already=f=>data.items.some(i=>i.osm===f.osm||norm(i.name)===norm(f.name)||(i.lat!=null&&f.lat!=null&&dist(i.lat,i.lng,f.lat,f.lng)<30&&norm(i.name).split(" ")[0]===norm(f.name).split(" ")[0]));
+async function runFind(){
+  fstate.busy=true;fstate.err="";found=[];pick.clear();findForm();
+  try{const j=await osmFetch(osmQuery(fstate.city,RAMOS[fstate.ramo][1]));
+    const seen=new Set();found=(j.elements||[]).map(e=>fromOSM(e,fstate.city)).filter(f=>f.name&&f.lat!=null&&!seen.has(norm(f.name))&&seen.add(norm(f.name)));
+    found.sort((a,b)=>(a.tipo==="Outro")-(b.tipo==="Outro")||a.name.localeCompare(b.name));
+    found.forEach(f=>{if(!already(f)&&f.tipo!=="Outro")pick.add(f.osm)});
+  }catch(e){fstate.err="A busca não respondeu. Confira a internet e tente de novo em alguns segundos."}
+  fstate.busy=false;fstate.searched=true;findForm();
+}
+function addPicked(){
+  const sel=found.filter(f=>pick.has(f.osm)&&!already(f));if(!sel.length){toast("Nenhum negócio novo selecionado.");return}
+  sel.forEach((f,i)=>data.items.push({id:"o"+Date.now()+i,osm:f.osm,name:f.name,cat:f.cat,tipo:f.tipo,phone:f.phone,lat:f.lat,lng:f.lng,status:"new",order:Date.now()+i,
+    notes:[f.site?"Site cadastrado: "+f.site:"",f.addr?"Endereço: "+f.addr:""].filter(Boolean).join("\n"),hist:[{id:uid(),d:now(),t:"add",txt:"OpenStreetMap"}]}));
+  persist();pick.clear();renderAll();findForm();toast(`${sel.length} negócio${sel.length>1?"s":""} adicionado${sel.length>1?"s":""} em “A contatar”.`);
+}
+function findForm(){
+  openId=null;const d=$("#drawer");d.replaceChildren();showDrawer();d.setAttribute("aria-label","Buscar negócios");
+  const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;
+  dh.append(x,el("h2",0,"Buscar negócios"),el("p","muted","Busca gratuita na base do OpenStreetMap. Ela tem menos comércios que o Google, então confira cada um no Google Maps antes de abordar."));d.append(dh);
+  const fm=el("form","ds"),w1=el("div","field"),l1=el("label",0,"Cidade"),ci=el("input","t");l1.htmlFor="b-city";ci.id="b-city";ci.value=fstate.city;ci.required=true;w1.append(l1,ci);
+  const w2=el("div","field"),l2=el("label",0,"Ramo"),rs=el("select","t");l2.htmlFor="b-ramo";rs.id="b-ramo";Object.entries(RAMOS).forEach(([k,v])=>{const o=el("option",0,v[0]);o.value=k;rs.append(o)});rs.value=fstate.ramo;w2.append(l2,rs);
+  const sb=el("button","b main",fstate.busy?"Buscando…":"Buscar");sb.type="submit";sb.disabled=fstate.busy;sb.style.width="100%";
+  fm.append(w1,w2,sb);fm.onsubmit=e=>{e.preventDefault();fstate.city=ci.value.trim()||"Viamão";fstate.ramo=rs.value;runFind()};d.append(fm);
+  const r=el("section","ds");
+  if(fstate.err)r.append(el("p","warn",fstate.err));
+  else if(!fstate.busy&&found.length){
+    const nov=found.filter(f=>!already(f));
+    const hd=el("div","fhd"),cb=el("label","chk"),ck=el("input");ck.type="checkbox";ck.checked=fstate.onlyNo;ck.onchange=()=>{fstate.onlyNo=ck.checked;findForm()};
+    cb.append(ck,document.createTextNode(" Só quem não tem site cadastrado"));
+    hd.append(el("h3",0,`${found.length} encontrados, ${nov.length} fora do funil`),cb);r.append(hd);
+    const list=found.filter(f=>!fstate.onlyNo||f.tipo!=="Outro");
+    if(!list.length)r.append(el("p","muted","Todos os encontrados têm site cadastrado. Desmarque o filtro para ver a lista."));
+    list.forEach(f=>{const inF=already(f),row=el("label","fres"+(inF?" off":"")),c=el("input");c.type="checkbox";c.disabled=inF;c.checked=pick.has(f.osm)&&!inF;
+      c.onchange=()=>{c.checked?pick.add(f.osm):pick.delete(f.osm);upd()};
+      const m=el("span","cm");m.append(el("strong",0,f.name),el("small",0,[f.cat,f.phone||"sem telefone cadastrado"].join(", ")));
+      const tg=el("span","fmeta");tg.append(inF?el("span","tag","Já está no funil"):tag(f.tipo==="Outro"?"Tem site cadastrado":f.tipo));
+      const gm=el("a",0,"Ver no Google Maps");gm.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(f.name+" "+f.city);gm.target="_blank";gm.rel="noopener";gm.onclick=e=>e.stopPropagation();tg.append(gm);
+      m.append(tg);if(inF)tg.firstChild.style.setProperty("--t","var(--soft)");row.append(c,m);r.append(row)});
+    const ab=el("button","b main","");ab.style.cssText="width:100%;position:sticky;bottom:12px;margin-top:12px";ab.onclick=addPicked;
+    const upd=()=>{const n=[...pick].filter(id=>{const f=found.find(x=>x.osm===id);return f&&!already(f)}).length;ab.textContent=n?`Adicionar ${n} ao funil`:"Selecione negócios para adicionar";ab.disabled=!n};upd();r.append(ab);
+  }else if(!fstate.busy&&fstate.searched)r.append(el("p","muted","Nenhum negócio desse ramo cadastrado no OpenStreetMap para essa cidade. Tente outro ramo ou uma cidade vizinha."));
+  const gl=el("a","b link","Procurar esse ramo no Google Maps");gl.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(RAMOS[fstate.ramo][0].split(",")[0]+" em "+fstate.city);gl.target="_blank";gl.rel="noopener";gl.style.marginTop="10px";
+  r.append(gl);d.append(r);
+}
+
 function histView(){
   const box=$("#histv");box.replaceChildren();const ids=new Set(visible().map(i=>i.id));
   const all=[];data.items.forEach(it=>{if(ids.has(it.id))(it.hist||[]).forEach(e=>all.push([it,e]))});
@@ -654,7 +754,7 @@ $("#ft").onchange=e=>{ft=e.target.value;renderAll()};
 document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 const onQ=e=>{q=e.target.value.trim().toLowerCase();$("#q").value=$("#q2").value=e.target.value;renderAll()};
 $("#q").oninput=onQ;$("#q2").oninput=onQ;
-$("#newBtn").onclick=newForm;$("#scrim").onclick=closeDrawer;
+$("#newBtn").onclick=newForm;$("#findBtn").onclick=findForm;$("#scrim").onclick=closeDrawer;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#pm").hidden){closeProposal();return}if(e.key==="Escape"){if(placing){placing=null;$("#placing")?.remove()}else closeDrawer()}});
 $("#exp").onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`truzav-prospeccao-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Backup exportado.")};
 $("#impBtn").onclick=()=>$("#imp").click();
