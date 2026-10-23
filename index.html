@@ -257,6 +257,11 @@ body.pmopen{overflow:hidden}
 .maplink{display:inline-block;margin:10px 0 0 10px;font-size:13px;font-weight:500;color:var(--ot)}
 .doc blockquote{margin:10px 0;padding:12px 16px;background:#F5F0E8;border-left:3px solid #F0642B;font-size:15px;font-style:italic;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
 .doc blockquote cite{display:block;font-style:normal;font-size:12px;color:#5F594F;margin-top:6px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{font:500 13px Inter,sans-serif;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:3px;padding:6px 10px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips .muted{margin:0}
 </style>
 </head>
 <body>
@@ -466,6 +471,7 @@ function drawer(){
   if(it.phone){const l=el("a","b");l.href="tel:"+it.phone.replace(/[^\d+]/g,"");l.append(svg(IC.tel),document.createTextNode("Ligar"));a.append(l)}
   NEXT[it.status].forEach(([to,lab,main])=>{const b=el("button","b"+(main?" main":""),lab);b.onclick=()=>move(it.id,to);a.append(b)});
   s1.append(a);d.append(s1);
+  const sm=msgSection(it);if(sm)d.append(sm);
   const sv2=el("section","ds");sv2.append(el("h3",0,"Provas para a proposta"));
   const pv=it.provas||[];
   if(!pv.length)sv2.append(el("p","muted","Comentários de clientes que mostram falta de site ou de contato. Eles entram na proposta, sem o nome de quem escreveu."));
@@ -766,6 +772,43 @@ function findForm(){
   d.append(s2);
 }
 
+/* ===== Mensagens prontas ===== */
+const saud=()=>{const h=new Date().getHours();return h<12?"Bom dia":h<18?"Boa tarde":"Boa noite"};
+const firstName=it=>((it.contato||"").split(/[,(\-–]/)[0].trim().split(/\s+/)[0]||"");
+function msgs(it){
+  const n=it.name,pn=firstName(it),oi=pn?`Oi, ${pn}!`:"Oi, tudo bem?",hasP=(it.provas||[]).length>0;
+  const apres="Sou da TRUZAV, criamos sites para empresas da região.";
+  const prova="um cliente comentou que tentou falar com vocês e não conseguiu. Com um site, telefone, WhatsApp e horários ficam sempre à mão, e isso não se perde mais.";
+  const enviar=`${oi} Como combinamos, segue a proposta do site da ${n}.\n\nColoquei como está hoje, o que o site teria e algumas sugestões pensadas para o que vocês fazem.\n\nDá uma olhada com calma e me conta o que achou. Se quiser ajustar alguma coisa, a gente adapta.`;
+  const enviarP=`${oi} Segue a proposta do site da ${n}.\n\nUma coisa me chamou atenção: no Google, ${prova}\n\nEstá tudo explicado no PDF. Qualquer dúvida, é só me chamar por aqui.`;
+  const M={
+   new:[!pn&&["Descobrir quem decide",`${saud()}! Falo com a ${n}? Quem cuida da divulgação de vocês?`],
+        ["Primeiro contato com proposta",pn?`Oi, ${pn}, tudo bem? ${apres}\n\nVi o perfil da ${n} no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`:`Oi, pessoal da ${n}, tudo bem? ${apres}\n\nVi o perfil de vocês no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`],
+        hasP&&["Primeiro contato citando comentário",`${pn?`Oi, ${pn}, tudo bem?`:`Oi, pessoal da ${n}, tudo bem?`} ${apres}\n\nVi o perfil de vocês no Google e um comentário me chamou atenção: ${prova}\n\nPreparei uma proposta, sem compromisso. Posso te mandar?`]],
+   previa:[["Lembrete",`${oi} Passando para saber se você viu minha mensagem. Se preferir, te explico em um áudio rápido.`],["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
+   conv:[["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
+   prop:[["Lembrete da proposta",`${oi} Conseguiu dar uma olhada na proposta? Se tiver alguma dúvida ou quiser ajustar algo, é só me dizer.`],
+         ["Última mensagem",`${oi} Não quero insistir, então esta é minha última mensagem sobre a proposta. Se mais para frente fizer sentido, é só me chamar por aqui. Sucesso para a ${n}!`]],
+   won:[["Agradecer e pedir indicação",`${oi} Obrigado pela confiança na TRUZAV! Se conhecer alguém que também precise de site, pode passar meu contato. Indicação é o que mais ajuda a gente.`]],
+   lost:[["Retomar contato",`${oi} Tudo bem? Falamos sobre o site da ${n} há um tempo. Se agora for um bom momento, posso atualizar a proposta para vocês.`]]};
+  return (M[it.status]||[]).filter(Boolean);
+}
+let msgSel={};
+function msgSection(it){
+  const L=msgs(it);if(!L.length)return null;
+  const sec=el("section","ds");sec.append(el("h3",0,"Mensagem pronta"));
+  let k=msgSel[it.id];if(k==null||!L[k])k=0;
+  const ch=el("div","chips");
+  if(L.length>1)L.forEach(([lab],i)=>{const b=el("button","chip",lab);b.type="button";b.setAttribute("aria-pressed",i===k);b.onclick=()=>{msgSel[it.id]=i;drawer()};ch.append(b)});
+  else ch.append(el("p","muted",L[0][0]));
+  const ta=el("textarea","t");ta.setAttribute("aria-label","Texto da mensagem");ta.value=L[k][1];ta.style.minHeight="150px";
+  const ac=el("div","acts"),w=wa(it.phone);ac.style.marginTop="8px";
+  if(w){const a=el("a","b dark");a.append(svg(IC.wa),document.createTextNode("Abrir no WhatsApp"));a.target="_blank";a.rel="noopener";a.href="#";
+    a.onclick=e=>{a.href=w+"?text="+encodeURIComponent(ta.value)};ac.append(a)}
+  const cp=el("button","b","Copiar");cp.type="button";cp.onclick=async()=>{try{await navigator.clipboard.writeText(ta.value);toast("Mensagem copiada.")}catch(e){ta.select();toast("Selecione e copie o texto.")}};ac.append(cp);
+  const hint=el("p","muted",w?"Revise antes de enviar. Depois, registre o contato no bloco abaixo.":"Esse telefone não parece ser de WhatsApp. Copie a mensagem e envie por onde preferir.");hint.style.fontSize="13px";
+  sec.append(ch,ta,ac,hint);return sec;
+}
 function histView(){
   const box=$("#histv");box.replaceChildren();const ids=new Set(visible().map(i=>i.id));
   const all=[];data.items.forEach(it=>{if(ids.has(it.id))(it.hist||[]).forEach(e=>all.push([it,e]))});
