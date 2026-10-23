@@ -240,6 +240,16 @@ body.pmopen{overflow:hidden}
 .fmeta a{font-size:13px;color:var(--ot);font-weight:500}
 .b:disabled{opacity:.55;cursor:default}
 @media(max-width:700px){#findBtn span{display:none}}
+
+.doc table.cmp{margin:10px 0 12px;font-size:14px}
+.doc table.cmp th,.doc table.cmp td{padding:9px 10px;width:auto;font-weight:400;color:#111}
+.doc table.cmp tbody th{font-weight:500;color:#5F594F;width:24%}
+.doc table.cmp thead th{font:600 13px Sora,Inter,sans-serif;color:#5F594F;border-bottom:2px solid rgba(17,17,17,.2)}
+.doc table.cmp thead th:last-child{color:#111;border-bottom-color:#F0642B}
+.doc table.cmp td:last-child{background:#F5F0E8;font-weight:500}
+.doc table.cmp tr:first-child td{font:inherit}
+.doc table.cmp tr:first-child td:last-child{font-weight:500}
+.doc table.cmp td:last-child{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 </style>
 </head>
 <body>
@@ -265,11 +275,6 @@ body.pmopen{overflow:hidden}
   <label class="msearch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="q2" type="search" placeholder="Buscar no funil" aria-label="Buscar no funil"></label>
   <select class="sel" id="ft" aria-label="Filtrar por situação do site"><option value="">Situação do site: todas</option></select>
   <div class="sp"></div>
-  <div class="seg" role="group" aria-label="Visualização">
-    <button data-v="board" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Quadro</button>
-    <button data-v="map" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Mapa</button>
-    <button data-v="hist" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Histórico</button>
-  </div>
   <button class="b link" id="exp"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Exportar</button>
   <button class="b link" id="impBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14"/></svg>Importar</button>
   <input type="file" id="imp" accept=".json,application/json" hidden>
@@ -563,8 +568,24 @@ const SITU={"Sem site":"Hoje, quem procura vocês no Google encontra só o perfi
 const TIPO_P={landing:["Landing page","Uma página única e direta, com tudo o que o cliente precisa para decidir e chamar você."],
  site:["Site","Um site com páginas para cada assunto, mais espaço para mostrar o seu trabalho e para aparecer no Google."]};
 const PDEF={landing:720,site:1350};
+const WHY_OFF=["Site fraco ou desatualizado","Site de construtor gratuito"];
+function whyBlock(it){
+  const redes=it.tipo==="Só Instagram"?"Instagram":it.tipo==="Só Facebook"?"Facebook":"Instagram ou Facebook";
+  const cat=norm(it.cat||"").includes("comercio")||!it.cat?"o seu serviço":(it.cat.replace(/\s*\(.*?\)/g,"").toLowerCase());
+  const cid=it.city||"Viamão";
+  const rows=[["Quem decide quem vê","O algoritmo da plataforma","Você. O site fica no ar para quem procurar, a qualquer hora"],
+   ["Busca no Google","Posts aparecem pouco nas buscas",`Páginas preparadas para quem procura “${cat} em ${cid}”`],
+   ["Informações","Espalhadas entre as postagens","Serviços, horários e localização num só lugar"],
+   ["Quem consegue ver","Muitas vezes pede login para ver mais","Abre em qualquer celular, sem precisar de conta"],
+   ["A quem pertence","Às regras da plataforma; a conta pode ser bloqueada ou invadida","A você, com endereço próprio (seunome.com.br)"],
+   ["Primeira impressão","Um perfil entre muitos","Imagem de empresa estabelecida"]];
+  return `<h2>Por que ter site se já tenho ${esc(redes)}?</h2>
+<p>É uma dúvida comum, e a resposta é que os dois juntos funcionam melhor. Cada um tem um papel diferente:</p>
+<table class="cmp"><thead><tr><th></th><th>Só redes sociais</th><th>Com site</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table>
+<p>As redes continuam importantes: elas atraem e mostram o dia a dia. O site organiza, aparece nas buscas e leva o cliente ao contato. Um leva ao outro: o link do site vai na bio, e o site mostra as fotos do ${it.tipo==="Só Facebook"?"Facebook":"Instagram"}.</p>`;
+}
 const cfg=()=>Object.assign({pag:"50% na aprovação dos textos e 50% na publicação",mens:"",val:15},data.cfg||{});
-function propOpts(it){const c=cfg(),o=Object.assign({tipo:"landing",seg:segOf(it),pag:c.pag,mens:c.mens,val:c.val,prazo:"",para:it.contato||""},it.prop||{});
+function propOpts(it){const c=cfg(),o=Object.assign({why:!WHY_OFF.includes(it.tipo),tipo:"landing",seg:segOf(it),pag:c.pag,mens:c.mens,val:c.val,prazo:"",para:it.contato||""},it.prop||{});
   if(o.valor==null)o.valor=+it.valor||PDEF[o.tipo];return o}
 function propHTML(it,o){
   const S=SEG[o.seg]||SEG.geral,T=TIPO_P[o.tipo],adv=/advoc|advog/.test(norm(it.cat+" "+it.name));
@@ -577,6 +598,7 @@ function propHTML(it,o){
 <h1>${esc(T[0])} para ${esc(it.name)}</h1>
 <p class="lead">${esc(S.obj)}</p>
 <h2>Como está hoje</h2><p>${esc(SITU[it.tipo]||SITU.Outro)}</p>
+${o.why?whyBlock(it):""}
 <h2>O que propomos</h2><p>${esc(T[1])} O conteúdo previsto:</p><ul>${li(S.sec)}</ul>
 <h2>Sugestões da TRUZAV</h2><p>Mais do que montar páginas, pensamos junto com você no que pode trazer mais clientes:</p><ul>${li(S.sug)}</ul>
 ${cuid?`<p class="note">${esc(cuid)}</p>`:""}
@@ -597,6 +619,7 @@ function waText(doc){
     if(tg==="H1")out.push("*"+tx+"*");else if(tg==="H2")out.push("\n*"+tx+"*");
     else if(tg==="UL")n.querySelectorAll("li").forEach(l=>out.push("• "+l.innerText.trim()));
     else if(tg==="OL")n.querySelectorAll("li").forEach((l,i)=>out.push(`${i+1}. `+l.innerText.trim()));
+    else if(tg==="TABLE"&&n.classList.contains("cmp"))n.querySelectorAll("tbody tr").forEach(r=>out.push("• "+r.cells[0].innerText.trim()+": "+r.cells[2].innerText.trim()));
     else if(tg==="TABLE")n.querySelectorAll("tr").forEach(r=>out.push(r.cells[0].innerText.trim()+": "+r.cells[1].innerText.trim()));
     else if(tg==="FOOTER")out.push("\n"+tx);else out.push(tx)});
   return out.join("\n").replace(/\n{3,}/g,"\n\n");
@@ -619,12 +642,13 @@ function proposal(){
   const pz=el("input","t");pz.id="p-prazo";pz.placeholder="Ex.: 15 dias após aprovar os textos";pz.value=o.prazo;fld("Prazo (opcional)",pz);
   const pa=el("input","t");pa.id="p-para";pa.value=o.para;fld("Aos cuidados de",pa);
   const vd=el("input","t");vd.id="p-vd";vd.type="number";vd.min="1";vd.value=o.val;fld("Validade (dias)",vd);
+  const wl=el("label","chk"),wy=el("input");wy.type="checkbox";wy.id="p-why";wy.checked=!!o.why;wl.append(wy,document.createTextNode(" Incluir “Por que ter site se já tenho redes sociais?”"));wl.style.margin="2px 0 14px";side.append(wl);
   const en=el("p","warn");en.hidden=true;side.append(en);
   function editNote(){const ed=!!(it.prop&&it.prop.edited);en.hidden=!ed;en.textContent="Você editou o texto direto na proposta. Mudar as opções acima vai desfazer essas edições."}
-  const onOpt=()=>{const p={tipo:tp.value,seg:sg.value,valor:+vl.value||0,pag:pg.value.trim(),mens:ms.value,prazo:pz.value.trim(),para:pa.value.trim(),val:+vd.value||15};
+  const onOpt=()=>{const p={why:wy.checked,tipo:tp.value,seg:sg.value,valor:+vl.value||0,pag:pg.value.trim(),mens:ms.value,prazo:pz.value.trim(),para:pa.value.trim(),val:+vd.value||15};
     if(tp.value!==o.tipo&&(+vl.value===PDEF[o.tipo])){p.valor=PDEF[tp.value];vl.value=p.valor}
     o.tipo=tp.value;save(p);regen()};
-  [tp,sg,vl,pg,ms,pz,pa,vd].forEach(n=>n.onchange=onOpt);
+  [tp,sg,vl,pg,ms,pz,pa,vd,wy].forEach(n=>n.onchange=onOpt);
   const acts=el("div","pmacts");
   const pr=el("button","b main","Salvar em PDF ou imprimir");pr.onclick=()=>window.print();
   const cp=el("button","b","Copiar texto para o WhatsApp");cp.onclick=async()=>{try{await navigator.clipboard.writeText(waText(doc));toast("Texto copiado. Cole na conversa do WhatsApp.")}catch(e){toast("Não foi possível copiar. Selecione o texto da proposta e copie manualmente.")}};
@@ -644,6 +668,7 @@ function proposal(){
 /* ===== Busca de negócios (OpenStreetMap, gratuita) ===== */
 const OSM_EP=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass.private.coffee/api/interpreter"];
 const RAMOS={
+ todos:["Todos os ramos",[]],
  beleza:["Barbearias, salões e estética",['shop=hairdresser','shop=beauty','shop=cosmetics']],
  automotivo:["Oficinas e serviços automotivos",['shop=car_repair','shop=tyres','shop=car_parts','amenity=car_wash']],
  saude:["Clínicas, consultórios e dentistas",['amenity=clinic','amenity=doctors','amenity=dentist','healthcare=physiotherapist','healthcare=psychotherapist']],
@@ -662,11 +687,17 @@ const CATN={hairdresser:"Salão de beleza",beauty:"Estética",cosmetics:"Cosmét
  lawyer:"Advocacia",accountant:"Contabilidade",notary:"Cartório",estate_agent:"Imobiliária",architect:"Arquitetura",builder:"Construtora",doityourself:"Material de construção",hardware:"Ferragem",
  driving_school:"Autoescola",language_school:"Escola de idiomas",music_school:"Escola de música",prep_school:"Reforço escolar",
  clothes:"Loja de roupas",shoes:"Calçados",furniture:"Móveis",florist:"Floricultura",gift:"Presentes",jewelry:"Joalheria",optician:"Ótica",mobile_phone:"Celulares e acessórios",variety_store:"Variedades"};
-let found=[],pick=new Set(),fstate={city:"Viamão",ramo:"beleza",onlyNo:true,busy:false,err:""};
-function osmQuery(city,tags){
-  const sel=tags.map(t=>{const [k,v]=t.split("=");return `nwr["${k}"="${v}"]["name"](area.a);`}).join("");
-  const c=city.replace(/"/g,"");
-  return `[out:json][timeout:25];area["name"="${c}"]["boundary"="administrative"]["admin_level"~"^(7|8)$"]->.a;(${sel});out center tags 200;`;
+let found=[],pick=new Set(),fstate={city:"Viamão",ramo:"todos",raio:10,onlyNo:true,busy:false,err:"",info:""};
+const CIDADES={"viamao":[-30.0810,-51.0230],"alvorada":[-29.9900,-51.0810],"gravatai":[-29.9440,-50.9910],"porto alegre":[-30.0340,-51.2170],"cachoeirinha":[-29.9510,-51.0940],"canoas":[-29.9180,-51.1830],"esteio":[-29.8520,-51.1790],"sapucaia do sul":[-29.8300,-51.1450],"glorinha":[-29.8790,-50.7730],"santo antonio da patrulha":[-29.8180,-50.5190]};
+async function geocode(city){
+  const k=norm(city).trim();if(CIDADES[k])return {lat:CIDADES[k][0],lon:CIDADES[k][1],src:"lista da ferramenta"};
+  const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q="+encodeURIComponent(city));
+  if(!r.ok)throw new Error("geo");const j=await r.json();if(!j.length)return null;
+  return {lat:+j[0].lat,lon:+j[0].lon,src:"OpenStreetMap"};
+}
+function osmQuery(g,tags,raio){
+  const sel=tags.map(t=>{const [k,v]=t.split("=");return `nwr["${k}"="${v}"]["name"](around:${raio},${g.lat},${g.lon});`}).join("");
+  return `[out:json][timeout:30];(${sel});out center 300;`;
 }
 async function osmFetch(q){
   let last;for(const ep of OSM_EP){try{const r=await fetch(ep,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
@@ -685,12 +716,21 @@ function fromOSM(e,city){
 const dist=(a,b,c,d)=>Math.hypot((a-c)*111e3,(b-d)*96e3);
 const already=f=>data.items.some(i=>i.osm===f.osm||norm(i.name)===norm(f.name)||(i.lat!=null&&f.lat!=null&&dist(i.lat,i.lng,f.lat,f.lng)<30&&norm(i.name).split(" ")[0]===norm(f.name).split(" ")[0]));
 async function runFind(){
-  fstate.busy=true;fstate.err="";found=[];pick.clear();findForm();
-  try{const j=await osmFetch(osmQuery(fstate.city,RAMOS[fstate.ramo][1]));
-    const seen=new Set();found=(j.elements||[]).map(e=>fromOSM(e,fstate.city)).filter(f=>f.name&&f.lat!=null&&!seen.has(norm(f.name))&&seen.add(norm(f.name)));
-    found.sort((a,b)=>(a.tipo==="Outro")-(b.tipo==="Outro")||a.name.localeCompare(b.name));
-    found.forEach(f=>{if(!already(f)&&f.tipo!=="Outro")pick.add(f.osm)});
-  }catch(e){fstate.err="A busca não respondeu. Confira a internet e tente de novo em alguns segundos."}
+  fstate.busy=true;fstate.err="";fstate.info="";found=[];pick.clear();findForm();
+  try{
+    let g;try{g=await geocode(fstate.city)}catch(e){g=undefined}
+    if(g===null){fstate.err=`Não encontrei a cidade “${fstate.city}”. Confira o nome, por exemplo: Alvorada, Gravataí.`}
+    else if(!g){fstate.err="Não consegui localizar a cidade agora. Tente Viamão, Alvorada, Gravataí, Porto Alegre, Cachoeirinha ou Canoas, que já estão na ferramenta."}
+    else{
+      const tags=fstate.ramo==="todos"?Object.values(RAMOS).flatMap(r=>r[1]):RAMOS[fstate.ramo][1];
+      const j=await osmFetch(osmQuery(g,tags,fstate.raio*1000));
+      const seen=new Set(),raw=j.elements||[];
+      found=raw.map(e=>fromOSM(e,fstate.city)).filter(f=>f.name&&f.lat!=null&&!seen.has(norm(f.name))&&seen.add(norm(f.name)));
+      found.sort((a,b)=>(a.tipo==="Outro")-(b.tipo==="Outro")||a.name.localeCompare(b.name));
+      found.forEach(f=>{if(!already(f)&&f.tipo!=="Outro")pick.add(f.osm)});
+      fstate.info=`Busca num raio de ${fstate.raio} km do centro de ${fstate.city}: o OpenStreetMap devolveu ${raw.length} ${raw.length===1?"lugar":"lugares"}.`;
+    }
+  }catch(e){fstate.err="O OpenStreetMap não respondeu. Confira a internet e tente de novo em alguns segundos."}
   fstate.busy=false;fstate.searched=true;findForm();
 }
 function addPicked(){
@@ -705,9 +745,11 @@ function findForm(){
   dh.append(x,el("h2",0,"Buscar negócios"),el("p","muted","Busca gratuita na base do OpenStreetMap. Ela tem menos comércios que o Google, então confira cada um no Google Maps antes de abordar."));d.append(dh);
   const fm=el("form","ds"),w1=el("div","field"),l1=el("label",0,"Cidade"),ci=el("input","t");l1.htmlFor="b-city";ci.id="b-city";ci.value=fstate.city;ci.required=true;w1.append(l1,ci);
   const w2=el("div","field"),l2=el("label",0,"Ramo"),rs=el("select","t");l2.htmlFor="b-ramo";rs.id="b-ramo";Object.entries(RAMOS).forEach(([k,v])=>{const o=el("option",0,v[0]);o.value=k;rs.append(o)});rs.value=fstate.ramo;w2.append(l2,rs);
+  const w3=el("div","field"),l3=el("label",0,"Distância do centro"),ra=el("select","t");l3.htmlFor="b-raio";ra.id="b-raio";[3,5,10,20].forEach(k=>{const o=el("option",0,k+" km");o.value=k;ra.append(o)});ra.value=fstate.raio;w3.append(l3,ra);
   const sb=el("button","b main",fstate.busy?"Buscando…":"Buscar");sb.type="submit";sb.disabled=fstate.busy;sb.style.width="100%";
-  fm.append(w1,w2,sb);fm.onsubmit=e=>{e.preventDefault();fstate.city=ci.value.trim()||"Viamão";fstate.ramo=rs.value;runFind()};d.append(fm);
+  fm.append(w1,w2,w3,sb);fm.onsubmit=e=>{e.preventDefault();fstate.city=ci.value.trim()||"Viamão";fstate.ramo=rs.value;fstate.raio=+ra.value;runFind()};d.append(fm);
   const r=el("section","ds");
+  if(fstate.info&&!fstate.busy)r.append(el("p","muted",fstate.info));
   if(fstate.err)r.append(el("p","warn",fstate.err));
   else if(!fstate.busy&&found.length){
     const nov=found.filter(f=>!already(f));
@@ -724,8 +766,8 @@ function findForm(){
       m.append(tg);if(inF)tg.firstChild.style.setProperty("--t","var(--soft)");row.append(c,m);r.append(row)});
     const ab=el("button","b main","");ab.style.cssText="width:100%;position:sticky;bottom:12px;margin-top:12px";ab.onclick=addPicked;
     const upd=()=>{const n=[...pick].filter(id=>{const f=found.find(x=>x.osm===id);return f&&!already(f)}).length;ab.textContent=n?`Adicionar ${n} ao funil`:"Selecione negócios para adicionar";ab.disabled=!n};upd();r.append(ab);
-  }else if(!fstate.busy&&fstate.searched)r.append(el("p","muted","Nenhum negócio desse ramo cadastrado no OpenStreetMap para essa cidade. Tente outro ramo ou uma cidade vizinha."));
-  const gl=el("a","b link","Procurar esse ramo no Google Maps");gl.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(RAMOS[fstate.ramo][0].split(",")[0]+" em "+fstate.city);gl.target="_blank";gl.rel="noopener";gl.style.marginTop="10px";
+  }else if(!fstate.busy&&fstate.searched)r.append(el("p","muted","O OpenStreetMap não tem negócios desse ramo cadastrados nessa área. Tente “Todos os ramos”, aumente a distância ou procure no Google Maps."));
+  const gl=el("a","b link","Procurar esse ramo no Google Maps");gl.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((fstate.ramo==="todos"?"comércios":RAMOS[fstate.ramo][0].split(",")[0])+" em "+fstate.city);gl.target="_blank";gl.rel="noopener";gl.style.marginTop="10px";
   r.append(gl);d.append(r);
 }
 
