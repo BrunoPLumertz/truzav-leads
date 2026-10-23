@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TRUZAV · Funil de prospecção</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--grafite:#111111;--creme:#F5F0E8;--laranja:#F0642B;--areia:#B8B0A4;
+--bg:#F5F0E8;--surf:#FFFFFF;--surf2:#FAF7F2;--ink:#111111;--soft:#69635B;--line:#E3DCCF;--focus:#F0642B;
+--s-new:#69635B;--s-previa:#3B6FB6;--s-conv:#B07A0C;--s-prop:#7A4FB0;--s-won:#2E7D4F;--s-lost:#B0564E;
+--ok:#2E7D4F;--okbg:#E2F2E7;--late:#A86A08;--latebg:#FBEBC8;--bad:#B0564E;--badbg:#F7E1DE;
+--t-none:#B0564E;--t-social:#A86A08;--t-weak:#3B6FB6;--shadow:0 1px 2px rgba(17,17,17,.06),0 2px 6px rgba(17,17,17,.04);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#111111;--surf:#1A1A1A;--surf2:#222120;--ink:#F5F0E8;--soft:#B8B0A4;--line:#2E2C29;
+--s-new:#B8B0A4;--s-previa:#7FA6E4;--s-conv:#E6B14E;--s-prop:#B49AE0;--s-won:#5CC48C;--s-lost:#E58E85;
+--ok:#5CC48C;--okbg:#1C2E23;--late:#E6B14E;--latebg:#33290F;--bad:#E58E85;--badbg:#3A2220;
+--t-none:#E58E85;--t-social:#E6B14E;--t-weak:#7FA6E4;--shadow:none;color-scheme:dark}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+h1,h2,.brand{font-family:Sora,Inter,system-ui,sans-serif}
+/* barra superior */
+.nav{background:var(--grafite);color:var(--creme);display:flex;align-items:center;gap:6px;padding:0 20px;height:62px;flex:none;border-bottom:1px solid #222}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:.04em;margin-right:22px}
+.brand i{width:10px;height:22px;background:var(--laranja);display:block}
+.tab{all:unset;cursor:pointer;height:62px;display:flex;align-items:center;gap:8px;padding:0 14px;font-weight:600;color:var(--areia);position:relative}
+.tab:hover{color:var(--creme)}
+.tab[aria-current="true"]{color:var(--creme)}
+.tab[aria-current="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;background:var(--laranja)}
+.tab:focus-visible{outline:2px solid var(--laranja);outline-offset:-4px}
+.nav .sp{flex:1}
+.nsearch{display:flex;align-items:center;gap:8px;background:#1E1E1E;border:1px solid #2E2E2E;border-radius:8px;padding:0 12px;height:40px;width:300px;color:var(--areia)}
+.nsearch input{border:0;background:transparent;outline:none;width:100%;color:var(--creme)}
+.nsearch:focus-within{border-color:var(--laranja)}
+/* cabeçalho do funil */
+.head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 24px 6px}
+.head h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em}
+.total{font-size:18px;font-weight:600}
+.count{background:var(--grafite);color:var(--creme);font-size:12px;font-weight:600;border-radius:6px;padding:3px 8px}
+@media(prefers-color-scheme:dark){.count{background:var(--creme);color:var(--grafite)}}
+.head .sp{flex:1}
+.b{height:42px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:var(--surf);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.b:hover{border-color:var(--ink)}
+.b.main{background:var(--laranja);border-color:var(--laranja);color:var(--grafite)}
+.b.main:hover{filter:brightness(1.05);border-color:var(--laranja)}
+.b.dark{background:var(--grafite);border-color:var(--grafite);color:var(--creme)}
+@media(prefers-color-scheme:dark){.b.dark{background:var(--creme);border-color:var(--creme);color:var(--grafite)}}
+.b.link{border-color:transparent;background:transparent;padding:0 10px}
+.b.link:hover{border-color:transparent;text-decoration:underline}
+.b.ghost{border-color:transparent;background:transparent;color:var(--soft);font-weight:500}
+.b.danger{color:var(--bad)}
+/* metas */
+.goals{display:flex;gap:22px;flex-wrap:wrap;padding:4px 24px 12px;font-size:14px;color:var(--soft)}
+.goal{display:flex;align-items:center;gap:8px}
+.goal b{color:var(--ink);font-weight:600}
+.fil{width:72px;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.fil i{display:block;height:100%;background:var(--laranja)}
+/* barra de ferramentas */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 24px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sel{height:42px;border:1px solid var(--line);background:var(--surf);border-radius:8px;padding:0 10px}
+.bar .sp{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surf)}
+.seg button{border:0;background:transparent;height:40px;padding:0 14px;display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--soft);font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--grafite);color:var(--creme)}
+@media(prefers-color-scheme:dark){.seg button[aria-pressed="true"]{background:var(--creme);color:var(--grafite)}}
+/* quadro */
+main{flex:1;min-height:0;display:flex;padding:14px 24px 18px}
+.board{flex:1;display:flex;gap:16px;overflow-x:auto}
+.col{flex:1 1 0;min-width:200px;display:flex;flex-direction:column;min-height:0}
+.colh{padding:2px 2px 10px;border-bottom:3px solid var(--c);margin-bottom:10px}
+.colh h2{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0}
+.colh p{margin:2px 0 0;color:var(--soft);font-size:14px}
+.colb{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px 4px 8px 2px;border-radius:10px;scrollbar-width:thin}
+.col.over .colb{background:color-mix(in srgb,var(--c) 10%,transparent)}
+.drop{border:1.5px dashed var(--line);border-radius:10px;min-height:84px;display:grid;place-items:center;text-align:center;color:var(--soft);font-size:13px;padding:10px;
+ background-image:radial-gradient(color-mix(in srgb,var(--areia) 55%,transparent) 1px,transparent 1.2px);background-size:12px 12px}
+.col.over .drop{border-color:var(--c);color:var(--ink)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px 14px;display:flex;gap:10px;cursor:grab;box-shadow:var(--shadow)}
+.card:hover{border-color:var(--ink)}
+.card.drag{opacity:.4}
+.cm{flex:1;min-width:0}
+.cm strong{display:block;font-weight:600;font-size:15px;line-height:1.3}
+.cm small{display:block;color:var(--soft);font-size:13px;margin-top:1px}
+.val{display:block;font-size:14px;margin-top:6px;font-weight:500}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:5px;padding:2px 7px;margin-top:8px;color:var(--t);background:color-mix(in srgb,var(--t) 13%,transparent)}
+.act{position:relative;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--okbg);color:var(--ok);text-decoration:none;align-self:center}
+.act.late{background:var(--latebg);color:var(--late)}
+.act.done{background:var(--surf2);color:var(--soft)}
+.act.lost{background:var(--badbg);color:var(--bad)}
+.act svg.i{width:20px;height:20px}
+.act .w{position:absolute;right:-3px;bottom:-3px;width:20px;height:20px;border-radius:50%;background:var(--surf);display:grid;place-items:center}
+.act .w svg.i{width:14px;height:14px;color:var(--late)}
+/* mapa */
+.mapv{flex:1;display:flex;min-height:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surf)}
+#map{flex:1;min-height:320px;position:relative}
+.mapmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:var(--soft);z-index:500}
+.mapmsg div{max-width:380px}.mapmsg strong{display:block;color:var(--ink);font-family:Sora,Inter,sans-serif;font-size:17px;margin-bottom:6px}
+.side{width:350px;border-left:1px solid var(--line);overflow-y:auto;background:var(--surf)}
+.side h2{font-size:16px;margin:16px 16px 4px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 16px 12px;font-size:12px;color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;display:inline-block}
+.item{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:11px 16px;cursor:pointer}
+.item:hover{background:var(--surf2)}
+.item .cm small{margin:0}
+.placing{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1000;background:var(--grafite);color:var(--creme);padding:9px 16px;border-radius:8px;font-weight:600;border-left:3px solid var(--laranja)}
+/* painel de detalhes */
+.scrim{position:fixed;inset:0;background:rgba(17,17,17,.4);z-index:1400}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);background:var(--surf);z-index:1500;overflow-y:auto;box-shadow:-12px 0 40px rgba(0,0,0,.22)}
+.dh{padding:22px 22px 18px;border-bottom:1px solid var(--line);position:relative;border-top:4px solid var(--laranja)}
+.dh h2{font-size:21px;margin:0 44px 2px 0;line-height:1.25}
+.x{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:8px;border:0;background:transparent;cursor:pointer;color:var(--soft);font-size:24px;line-height:1}
+.x:hover{background:var(--surf2)}
+.stage{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--c);margin:10px 10px 0 0}
+.warn{background:var(--latebg);border-radius:8px;padding:10px 12px;margin:14px 0 0;font-size:14px}
+.ds{padding:18px 22px;border-bottom:1px solid var(--line)}
+.ds h3{font-size:13px;color:var(--soft);font-weight:600;margin:0 0 10px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}.acts .b{flex:1 1 auto}
+.field{display:grid;gap:5px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:600;color:var(--soft)}
+.t{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surf2);width:100%}
+textarea.t{min-height:110px;resize:vertical}
+.muted{color:var(--soft);font-size:14px;margin:6px 0 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--grafite);color:var(--creme);padding:11px 18px;border-radius:8px;font-weight:500;z-index:2000;max-width:90vw;border-left:3px solid var(--laranja)}
+.toast:empty{display:none}
+.leaflet-container{font:inherit;background:var(--surf2)}
+@media(max-width:900px){.nsearch{display:none}.head .total{width:100%;order:3}}
+@media(max-width:700px){
+ .nav{padding:0 10px;height:56px}.brand{margin-right:6px;font-size:16px}.tab{height:56px;padding:0 10px}.tab span{display:none}
+ .head,.goals{padding-left:14px;padding-right:14px}.bar{margin:0 14px}main{padding:12px 14px 14px}
+ .bar .msearch{display:flex!important;flex:1 1 100%}
+ .col{min-width:84vw}
+ .mapv{flex-direction:column}#map{flex:0 0 50vh}.side{width:auto;border-left:0;border-top:1px solid var(--line)}
+ .drawer{top:auto;max-height:90vh;border-radius:14px 14px 0 0}
+ .head .b.main span{display:none}
+}
+.msearch{display:none;align-items:center;gap:8px;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:0 12px;height:42px}
+.msearch input{border:0;background:transparent;outline:none;width:100%}
+@media(prefers-reduced-motion:no-preference){.drawer{animation:din .22s ease-out}@keyframes din{from{transform:translateX(28px);opacity:0}}}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Navegação principal">
+  <div class="brand"><i aria-hidden="true"></i>TRUZAV</div>
+  <button class="tab" data-v="board" aria-current="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Funil</span></button>
+  <button class="tab" data-v="map" aria-current="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Mapa</span></button>
+  <div class="sp"></div>
+  <label class="nsearch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="q" type="search" placeholder="Buscar no funil" aria-label="Buscar no funil"></label>
+</nav>
+<header class="head">
+  <h1>Funil de prospecção</h1>
+  <span class="total num" id="total"></span>
+  <span class="count num" id="count"></span>
+  <div class="sp"></div>
+  <button class="b main" id="newBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Adicionar negócio</span></button>
+</header>
+<div class="goals" id="goals" aria-label="Metas"></div>
+<div class="bar">
+  <label class="msearch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="q2" type="search" placeholder="Buscar no funil" aria-label="Buscar no funil"></label>
+  <select class="sel" id="ft" aria-label="Filtrar por situação do site"><option value="">Situação do site: todas</option></select>
+  <div class="sp"></div>
+  <div class="seg" role="group" aria-label="Visualização">
+    <button data-v="board" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Quadro</button>
+    <button data-v="map" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Mapa</button>
+  </div>
+  <button class="b link" id="exp"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Exportar</button>
+  <button class="b link" id="impBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14"/></svg>Importar</button>
+  <input type="file" id="imp" accept=".json,application/json" hidden>
+</div>
+<main>
+  <section class="board" id="board" aria-label="Quadro de etapas"></section>
+  <section class="mapv" id="mapv" hidden><div id="map"></div><aside class="side" id="side" aria-label="Lista de negócios"></aside></section>
+</main>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden></aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(()=>{
+const KEY="prospeccao-viamao-v1",DAY_GOAL=10;
+const ST=[["new","A contatar"],["previa","Aguardando resposta"],["conv","Conversando"],["prop","Proposta enviada"],["won","Fechado"],["lost","Não quis"]];
+const LBL=Object.fromEntries(ST);
+const NEXT={new:[["previa","Já entrei em contato",1]],previa:[["conv","Respondeu",1],["lost","Não quis",0]],conv:[["prop","Enviei a proposta",1],["lost","Não quis",0]],prop:[["won","Fechou negócio",1],["lost","Não quis",0]],won:[],lost:[["new","Tentar de novo",0]]};
+const TIPOS=["Sem site","Só Instagram","Só Facebook","Só link do WhatsApp","Site fraco ou desatualizado","Site de construtor gratuito","Outro"];
+const TCOL=t=>t==="Sem site"?"--t-none":/^Só/.test(t||"")?"--t-social":"--t-weak";
+const SEED=[
+["p01","Barbearia Ditonne","Barbearia","Sem site","+55 51 3046-3092",-30.0895319,-51.0883992],
+["p02","Caroline Osório Doceria","Confeitaria e café","Sem site","+55 51 98928-0213",-30.0779921,-51.0493987],
+["p03","CT Team Brito","Treino funcional","Sem site","+55 51 98264-4531",-30.065978,-51.112231],
+["p04","Centro Clínico Veterinário Popular","Clínica veterinária","Sem site","+55 51 99834-4814",-30.0803157,-51.0210361],
+["p05","Alemão Auto Car","Oficina mecânica","Sem site","+55 51 3045-1425",-30.0777203,-51.0373894],
+["p06","Padaria Cecília","Padaria","Sem site","+55 51 99751-1079",-30.0660799,-51.0889946],
+["p07","Constrular.Rs","Construtora","Sem site","+55 51 98662-0752",-30.0925147,-51.0697358],
+["p08","Clínica Dra. Emily Galvão","Estética (biomedicina)","Sem site","+55 51 99575-8181",-30.0805165,-51.0286412],
+["p09","Camila Abreu Advocacia","Advocacia","Só link do WhatsApp","+55 51 98062-2997",-30.0805133,-51.0287156,"Atenção às regras de publicidade da OAB"],
+["p10","Mecânica Beneduzi","Oficina mecânica","Só Facebook","+55 51 3434-7741",-30.0802819,-51.0972753],
+["p11","Studio Dai Fraga","Salão de beleza","Só Facebook","+55 51 3178-7820",-30.083871,-51.0236321],
+["p12","Haus Barber Co.","Barbearia","Só Instagram","+55 51 98515-1519",-30.0810604,-51.0266088],
+["p13","Studio Saúde em Movimento","Academia","Só Facebook","+55 51 99695-6596",-30.0638519,-51.0164535],
+["p14","Studio Micheli Basili","Salão (mechas e mega hair)","Só Facebook","+55 51 99480-4319",-30.0816861,-51.0254601],
+["p15","Unique Estetic Center","Salão e estética","Só Facebook","+55 51 98232-0550",-30.082464,-51.0315042],
+["p16","Barbearia Véio Léo","Barbearia","Só Instagram","+55 51 99139-1643",-30.0671798,-51.0964071],
+["p17","Clínica Médica Belli","Clínica médica","Só Facebook","+55 51 3485-4242",-30.0805131,-51.028716,"Atenção às regras de publicidade médica (CFM)"],
+["p18","Prime Service Centro Automotivo","Oficina mecânica","Site de construtor gratuito","+55 51 98469-4225",-30.0793499,-51.0969581,"Oferecer upgrade: domínio próprio e visual melhor"],
+["p19","Clínica VivaVida","Clínica multidisciplinar","Site de construtor gratuito","+55 51 2160-6843",-30.130576,-50.851635,"Oferecer upgrade: domínio próprio e visual melhor"]];
+const IC={wa:'<svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+tel:'<svg class="i" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+ok:'<svg class="i" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+no:'<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+warn:'<svg class="i" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4m0 3v.01"/></svg>'};
+const BRL=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+
+const $=s=>document.querySelector(s);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const svg=h=>{const s=document.createElement("span");s.innerHTML=h;return s.firstChild};
+const today=()=>new Date().toLocaleDateString("sv-SE");
+const days=d=>Math.round((new Date(today())-new Date(d))/864e5);
+const br=d=>d.split("-").reverse().join("/");
+const cssv=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const money=v=>BRL.format(v||0);
+let tt;const toast=t=>{$("#toast").textContent=t;clearTimeout(tt);tt=setTimeout(()=>$("#toast").textContent="",3500)};
+
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.items))return s}catch(e){}
+  return {items:SEED.map((a,i)=>({id:a[0],name:a[1],cat:a[2],tipo:a[3],phone:a[4],lat:a[5],lng:a[6],notes:a[7]||"",status:"new",order:i+1}))}}
+let data=load(),view="board",q="",ft="",openId=null,placing=null,map=null,layer=null,fitted=false,confirmDel=false,tileFail=false;
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){toast("Não foi possível salvar neste navegador. Exporte um backup.")}}
+persist();
+const byId=id=>data.items.find(i=>i.id===id);
+const visible=()=>data.items.filter(i=>(!q||(i.name+" "+i.cat+" "+i.tipo).toLowerCase().includes(q))&&(!ft||i.tipo===ft));
+function update(id,p,quiet){Object.assign(byId(id),p);persist();if(!quiet)renderAll()}
+function move(id,s){const it=byId(id);if(!it||it.status===s)return;const p={status:s,changed:today()};if(s!=="new"&&!it.contacted)p.contacted=today();update(id,p);toast(`${it.name} agora está em “${LBL[s]}”.`)}
+function wa(p){const d=(p||"").replace(/\D/g,"");const l=d.replace(/^55/,"");return l.length===11&&l[2]==="9"?"https://wa.me/55"+l:null}
+const waiting=it=>it.status==="previa"&&it.contacted&&days(it.contacted)>=2;
+function tag(t){const s=el("span","tag",t);s.style.setProperty("--t",`var(${TCOL(t)})`);return s}
+function actBtn(it){
+  const s=it.status;
+  if(s==="won"||s==="lost"){const a=el("span","act "+(s==="won"?"done":"lost"));a.append(svg(s==="won"?IC.ok:IC.no));a.setAttribute("aria-hidden","true");return a}
+  const w=wa(it.phone),a=el("a","act"+(waiting(it)?" late":""));
+  if(w){a.href=w;a.target="_blank";a.rel="noopener";a.title="Abrir no WhatsApp";a.setAttribute("aria-label","WhatsApp de "+it.name);a.append(svg(IC.wa))}
+  else if(it.phone){a.href="tel:"+it.phone.replace(/[^\d+]/g,"");a.title="Ligar";a.setAttribute("aria-label","Ligar para "+it.name);a.append(svg(IC.tel))}
+  else{const x=el("span","act done");x.append(svg(IC.tel));return x}
+  if(waiting(it)){const w2=el("span","w");w2.append(svg(IC.warn));a.append(w2);a.title=`Sem resposta há ${days(it.contacted)} dias`}
+  a.onclick=e=>e.stopPropagation();a.ondragstart=e=>e.preventDefault();return a;
+}
+function head(){
+  const I=data.items,c=a=>I.filter(r=>a.includes(r.status)).length,n=I.filter(r=>r.contacted===today()).length;
+  const open=I.filter(r=>r.status!=="lost").reduce((s,r)=>s+(+r.valor||0),0);
+  $("#total").textContent=open?money(open)+" em propostas":"";
+  $("#count").textContent=`${I.length} negócios`;
+  const g=$("#goals");g.replaceChildren();
+  [["Hoje",n,DAY_GOAL,"contatos"],["Contatados",I.length-c(["new"]),100,""],["Conversas",c(["conv","prop","won"]),15,""],["Propostas",c(["prop","won"]),5,""],["Vendas",c(["won"]),1,""]].forEach(([l,v,m,suf])=>{
+    const d=el("div","goal"),f=el("span","fil"),i=el("i");i.style.width=Math.min(100,v/m*100)+"%";f.append(i);
+    const t=el("span","num");t.append(document.createTextNode(l+": "),el("b",0,`${v} de ${m}`),document.createTextNode(suf?" "+suf:""));d.append(t,f);g.append(d)});
+}
+function board(){
+  const b=$("#board");b.replaceChildren();const v=visible();
+  ST.forEach(([s,l])=>{
+    const its=v.filter(i=>i.status===s).sort((a,c)=>a.order-c.order),sum=its.reduce((a,i)=>a+(+i.valor||0),0);
+    const col=el("section","col");col.style.setProperty("--c",`var(--s-${s})`);col.setAttribute("aria-label",l);
+    const h=el("div","colh");h.append(el("h2",0,l),el("p","num",`${its.length} • ${money(sum)}`));col.append(h);
+    const body=el("div","colb");
+    its.forEach(it=>{
+      const c=el("div","card");c.tabIndex=0;c.setAttribute("role","button");c.setAttribute("aria-label",`${it.name}. Abrir detalhes`);c.draggable=true;
+      const m=el("div","cm");m.append(el("strong",0,it.name),el("small",0,it.cat||""));
+      if(+it.valor)m.append(el("span","val num",money(+it.valor)));
+      if(it.tipo&&(s==="new"||!+it.valor))m.append(tag(it.tipo));
+      c.append(m,actBtn(it));
+      c.onclick=()=>openItem(it.id);c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openItem(it.id)}};
+      c.ondragstart=e=>{e.dataTransfer.setData("text/plain",it.id);e.dataTransfer.effectAllowed="move";c.classList.add("drag")};c.ondragend=()=>c.classList.remove("drag");
+      body.append(c);
+    });
+    if(!its.length||true)body.append(el("div","drop",its.length?"Solte aqui":s==="new"?"Ninguém para contatar. Adicione negócios.":"Arraste um cartão para cá"));
+    col.append(body);
+    col.ondragover=e=>{e.preventDefault();col.classList.add("over")};col.ondragleave=e=>{if(!col.contains(e.relatedTarget))col.classList.remove("over")};
+    col.ondrop=e=>{e.preventDefault();col.classList.remove("over");const id=e.dataTransfer.getData("text/plain");if(id)move(id,s)};
+    b.append(col);
+  });
+}
+function side(){
+  const s=$("#side");s.replaceChildren();const v=visible(),order=Object.keys(LBL);
+  s.append(el("h2",0,`${v.length} negócios`));
+  const lg=el("div","legend");ST.forEach(([k,l])=>{const x=el("span"),d=el("span","dot");d.style.setProperty("--c",`var(--s-${k})`);x.append(d,document.createTextNode(l));lg.append(x)});s.append(lg);
+  v.slice().sort((a,b)=>order.indexOf(a.status)-order.indexOf(b.status)||a.name.localeCompare(b.name)).forEach(it=>{
+    const r=el("button","item"),m=el("span","cm"),d=el("span","dot");d.style.setProperty("--c",`var(--s-${it.status})`);
+    m.append(el("strong",0,it.name),el("small",0,it.lat==null?`${it.cat}, sem local marcado`:`${it.cat}, ${LBL[it.status].toLowerCase()}`));
+    r.append(d,m);r.onclick=()=>{if(it.lat!=null&&map)map.setView([it.lat,it.lng],16);openItem(it.id)};s.append(r)});
+}
+function mapMsg(title,text){$("#mapmsg")?.remove();const m=el("div","mapmsg"),d=el("div");m.id="mapmsg";d.append(el("strong",0,title),el("span",0,text));m.append(d);$("#map").append(m)}
+function initMap(){
+  if(map)return;
+  if(!window.L){mapMsg("O mapa não carregou.","Baixe o arquivo e abra direto no Chrome ou no Edge, com internet. Pela pré-visualização do Claude o mapa fica bloqueado. O funil funciona normalmente.");return}
+  map=L.map("map").setView([-30.08,-51.05],13);
+  const dark=matchMedia("(prefers-color-scheme: dark)").matches;
+  const tl=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?"dark_all":"rastertiles/voyager"}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:"abcd",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+  let fails=0,loads=0;tl.on("tileload",()=>{loads++;$("#mapmsg")?.remove()});
+  tl.on("tileerror",()=>{fails++;if(fails>=4&&!loads&&!tileFail){tileFail=true;mapMsg("As imagens do mapa não carregaram.","Confira a internet e se o arquivo foi aberto direto no navegador, não pela pré-visualização. Os pontos dos negócios continuam clicáveis.")}});
+  layer=L.layerGroup().addTo(map);
+  map.on("click",e=>{if(!placing)return;const id=placing;placing=null;$("#placing")?.remove();update(id,{lat:+e.latlng.lat.toFixed(7),lng:+e.latlng.lng.toFixed(7)});toast("Local salvo no mapa.");openItem(id)});
+}
+function markers(){
+  if(!map)return;layer.clearLayers();const pts=[];
+  visible().filter(i=>i.lat!=null).forEach(it=>{const sel=it.id===openId;
+    const m=L.circleMarker([it.lat,it.lng],{radius:sel?12:8,color:sel?cssv("--laranja"):cssv("--surf"),weight:sel?3:2,fillColor:cssv(`--s-${it.status}`),fillOpacity:1});
+    m.bindTooltip(`${it.name}: ${LBL[it.status]}`);m.on("click",()=>openItem(it.id));m.addTo(layer);pts.push([it.lat,it.lng])});
+  if(!fitted&&pts.length){map.fitBounds(pts,{padding:[40,40],maxZoom:15});fitted=true}
+}
+function showDrawer(){$("#drawer").hidden=false;$("#scrim").hidden=false}
+function closeDrawer(){openId=null;$("#drawer").hidden=true;$("#scrim").hidden=true;if(view==="map")markers()}
+function openItem(id){openId=id;confirmDel=false;drawer();if(view==="map")markers()}
+function startPlacing(it){placing=it.id;setView("map");$("#drawer").hidden=true;$("#scrim").hidden=true;$("#placing")?.remove();const p=el("div","placing","Clique no mapa onde fica "+it.name);p.id="placing";$("#map").append(p)}
+function drawer(){
+  const it=byId(openId),d=$("#drawer");if(!it){closeDrawer();return}
+  d.replaceChildren();showDrawer();d.setAttribute("aria-label",it.name);
+  const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;
+  dh.append(x,el("h2",0,it.name),el("p","muted",it.cat||""));
+  const stg=el("span","stage");stg.style.setProperty("--c",`var(--s-${it.status})`);stg.append(el("span","dot"),document.createTextNode(LBL[it.status]));dh.append(stg);
+  if(it.tipo)dh.append(tag(it.tipo));
+  if(waiting(it))dh.append(el("p","warn",`Sem resposta há ${days(it.contacted)} dias. Mande um lembrete curto.`));
+  else if(it.contacted)dh.append(el("p","muted",`Primeiro contato em ${br(it.contacted)}.`));
+  d.append(dh);
+  const s1=el("section","ds");s1.append(el("h3",0,"Próximo passo"));const a=el("div","acts"),w=wa(it.phone);
+  if(w){const l=el("a","b");l.href=w;l.target="_blank";l.rel="noopener";l.append(svg(IC.wa),document.createTextNode("WhatsApp"));a.append(l)}
+  if(it.phone){const l=el("a","b");l.href="tel:"+it.phone.replace(/[^\d+]/g,"");l.append(svg(IC.tel),document.createTextNode("Ligar"));a.append(l)}
+  NEXT[it.status].forEach(([to,lab,main])=>{const b=el("button","b"+(main?" main":""),lab);b.onclick=()=>move(it.id,to);a.append(b)});
+  s1.append(a);d.append(s1);
+  const s2=el("section","ds");s2.append(el("h3",0,"Anotações"));
+  const ta=el("textarea","t");ta.setAttribute("aria-label","Anotações");ta.placeholder="O que foi conversado e qual o próximo passo";ta.value=it.notes||"";ta.oninput=()=>update(it.id,{notes:ta.value},true);s2.append(ta);d.append(s2);
+  const s3=el("section","ds");s3.append(el("h3",0,"Dados do negócio"));
+  const f=(lab,key,sel,type)=>{const w=el("div","field"),l=el("label",0,lab),i=sel?el("select","t"):el("input","t");l.htmlFor="f-"+key;i.id="f-"+key;
+    if(sel){sel.forEach(([v,t])=>{const o=el("option",0,t);o.value=v;o.selected=v===it[key];i.append(o)})}else{i.value=it[key]??"";if(type){i.type=type;i.min="0";i.step="0.01";i.inputMode="decimal"}}
+    i.onchange=()=>key==="status"?move(it.id,i.value):update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});w.append(l,i);s3.append(w)};
+  f("Nome","name");f("Categoria","cat");f("Telefone","phone");f("Valor da proposta (R$)","valor",null,"number");
+  const tl=TIPOS.includes(it.tipo)||!it.tipo?TIPOS:[it.tipo,...TIPOS];f("Situação do site","tipo",tl.map(t=>[t,t]));f("Etapa","status",ST);
+  const la=el("div","acts"),pb=el("button","b",it.lat==null?"Marcar no mapa":"Mudar local no mapa");pb.onclick=()=>startPlacing(it);
+  const del=el("button","b ghost danger",confirmDel?"Clique de novo para remover":"Remover da lista");
+  del.onclick=()=>{if(!confirmDel){confirmDel=true;drawer();return}data.items=data.items.filter(i=>i.id!==it.id);persist();closeDrawer();renderAll();toast(`${it.name} foi removido.`)};
+  la.append(pb,del);s3.append(la);d.append(s3);
+}
+function newForm(){
+  openId=null;const d=$("#drawer");d.replaceChildren();showDrawer();d.setAttribute("aria-label","Adicionar negócio");
+  const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;dh.append(x,el("h2",0,"Adicionar negócio"),el("p","muted","Depois de adicionar, você marca o local no mapa."));d.append(dh);
+  const fm=el("form","ds"),vals={};
+  [["Nome do negócio","name"],["Categoria","cat"],["Telefone","phone"]].forEach(([l,k])=>{const w=el("div","field"),lb=el("label",0,l),i=el("input","t");lb.htmlFor="n-"+k;i.id="n-"+k;if(k==="name")i.required=true;if(k==="phone")i.inputMode="tel";vals[k]=i;w.append(lb,i);fm.append(w)});
+  const w=el("div","field"),lb=el("label",0,"Situação do site"),s=el("select","t");lb.htmlFor="n-tipo";s.id="n-tipo";TIPOS.forEach(t=>s.append(el("option",0,t)));w.append(lb,s);fm.append(w);
+  const sb=el("button","b main","Adicionar e marcar no mapa");sb.type="submit";sb.style.width="100%";fm.append(sb);
+  fm.onsubmit=e=>{e.preventDefault();const it={id:"n"+Date.now(),name:vals.name.value.trim(),cat:vals.cat.value.trim(),phone:vals.phone.value.trim(),tipo:s.value,notes:"",status:"new",order:Date.now(),lat:null,lng:null};
+    if(!it.name)return;data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
+  d.append(fm);vals.name.focus();
+}
+function setView(v){
+  view=v;document.querySelectorAll(".tab[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
+  document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
+  $("#board").hidden=v!=="board";$("#mapv").hidden=v!=="map";
+  if(v==="map"){initMap();setTimeout(()=>{map&&map.invalidateSize();markers()},0)}
+  renderAll();
+}
+function renderAll(){head();if(view==="board")board();else{side();markers()}if(openId&&!$("#drawer").hidden&&document.activeElement?.tagName!=="TEXTAREA"&&!document.activeElement?.closest?.(".field"))drawer()}
+
+TIPOS.forEach(t=>{const o=el("option",0,t);o.value=t;$("#ft").append(o)});
+$("#ft").onchange=e=>{ft=e.target.value;renderAll()};
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>setView(b.dataset.v));
+const onQ=e=>{q=e.target.value.trim().toLowerCase();$("#q").value=$("#q2").value=e.target.value;renderAll()};
+$("#q").oninput=onQ;$("#q2").oninput=onQ;
+$("#newBtn").onclick=newForm;$("#scrim").onclick=closeDrawer;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(placing){placing=null;$("#placing")?.remove()}else closeDrawer()}});
+$("#exp").onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`truzav-prospeccao-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Backup exportado.")};
+$("#impBtn").onclick=()=>$("#imp").click();
+$("#imp").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;data=d;persist();fitted=false;closeDrawer();renderAll();toast(`Backup importado: ${d.items.length} negócios.`)}catch(x){toast("Esse arquivo não é um backup desta ferramenta.")}e.target.value=""};r.readAsText(f)};
+renderAll();
+})();
+</script>
+</body>
+</html>
