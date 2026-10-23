@@ -164,6 +164,30 @@ textarea.t{min-height:110px;resize:vertical}
 @media(prefers-reduced-motion:no-preference){.drawer{animation:din .22s ease-out}@keyframes din{from{transform:translateX(28px);opacity:0}}}
 .b,.tab,.seg button,.cm strong,.item strong,.count,.total,.stage,.colh h2,.drawer h2,.side h2{font-weight:600}
 .head h1{font-weight:700}
+
+.histv{flex:1;overflow-y:auto;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:6px 24px 24px}
+.day{margin-top:18px}
+.day h2{font-size:15px;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+.day h2::before{content:"";width:20px;height:2px;background:var(--laranja)}
+.hrow{display:grid;grid-template-columns:56px minmax(160px,240px) 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.hrow time{color:var(--soft);font-size:13px}
+.hrow button{all:unset;cursor:pointer;font-family:Sora,Inter,sans-serif;font-weight:600}
+.hrow button:hover{text-decoration:underline}
+.hrow button:focus-visible{outline:2px solid var(--focus)}
+.hrow p{margin:0}.hrow small{display:block;color:var(--soft)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{position:relative;padding:0 0 16px 20px;border-left:2px solid var(--line);margin-left:5px}
+.tl li:last-child{border-left-color:transparent;padding-bottom:0}
+.tl li::before{content:"";position:absolute;left:-6px;top:4px;width:10px;height:10px;border-radius:2px;background:var(--c,var(--areia))}
+.tl time{display:block;font-size:12px;color:var(--soft)}
+.tl p{margin:2px 0 0}.tl small{display:block;color:var(--soft);margin-top:2px;white-space:pre-wrap}
+.tl .del{all:unset;cursor:pointer;font-size:12px;color:var(--soft);margin-top:4px;display:inline-block}
+.tl .del:hover{color:var(--bad)}
+.logf{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.logf .full{grid-column:1/-1}
+.logf textarea.t{min-height:70px}
+.empty{color:var(--soft);padding:24px 0}
+@media(max-width:700px){.hrow{grid-template-columns:48px 1fr}.hrow p{grid-column:2}.histv{padding:4px 14px 18px}}
 </style>
 </head>
 <body>
@@ -172,6 +196,7 @@ textarea.t{min-height:110px;resize:vertical}
   <a class="brand" href="./" aria-label="TRUZAV"><svg viewBox="0 0 585 100" role="img" aria-label="TRUZAV"><use href="#lg"/></svg></a>
   <button class="tab" data-v="board" aria-current="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Funil</span></button>
   <button class="tab" data-v="map" aria-current="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Mapa</span></button>
+  <button class="tab" data-v="hist" aria-current="false"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span>Histórico</span></button>
   <div class="sp"></div>
   <label class="nsearch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="q" type="search" placeholder="Buscar no funil" aria-label="Buscar no funil"></label>
 </nav>
@@ -190,6 +215,7 @@ textarea.t{min-height:110px;resize:vertical}
   <div class="seg" role="group" aria-label="Visualização">
     <button data-v="board" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>Quadro</button>
     <button data-v="map" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Mapa</button>
+    <button data-v="hist" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Histórico</button>
   </div>
   <button class="b link" id="exp"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Exportar</button>
   <button class="b link" id="impBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14"/></svg>Importar</button>
@@ -197,6 +223,7 @@ textarea.t{min-height:110px;resize:vertical}
 </div>
 <main>
   <section class="board" id="board" aria-label="Quadro de etapas"></section>
+  <section class="histv" id="histv" hidden aria-label="Histórico de atividades"></section>
   <section class="mapv" id="mapv" hidden><div id="map"></div><aside class="side" id="side" aria-label="Lista de negócios"></aside></section>
 </main>
 <div class="scrim" id="scrim" hidden></div>
@@ -252,13 +279,28 @@ function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.is
   return {items:SEED.map((a,i)=>({id:a[0],name:a[1],cat:a[2],tipo:a[3],phone:a[4],lat:a[5],lng:a[6],notes:a[7]||"",status:"new",order:i+1}))}}
 let data=load(),view="board",q="",ft="",openId=null,placing=null,map=null,layer=null,fitted=false,confirmDel=false,tileFail=false;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){toast("Não foi possível salvar neste navegador. Exporte um backup.")}}
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36);
+const now=()=>new Date().toISOString();
+const dayOf=iso=>new Date(iso).toLocaleDateString("sv-SE");
+const hhmm=iso=>new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const CANAIS=["WhatsApp","Ligação","Visita","Instagram","E-mail","Outro"];
+data.items.forEach(it=>{if(!Array.isArray(it.hist)){it.hist=[];if(it.contacted&&it.status!=="new")it.hist.push({id:uid(),d:it.contacted+"T12:00:00",t:"nota",txt:"Primeiro contato (registrado antes do histórico)."})}});
+function addLog(it,e){it.hist=it.hist||[];it.hist.push({id:uid(),d:now(),...e})}
+const lastAct=it=>{const h=(it.hist||[]).filter(e=>e.t==="contato"||e.t==="status").map(e=>dayOf(e.d)).sort();return h.length?h[h.length-1]:it.contacted};
+const touchedToday=it=>(it.hist||[]).some(e=>dayOf(e.d)===today()&&(e.t==="contato"||(e.t==="status"&&e.from==="new")));
+function descr(e){
+  if(e.t==="status")return [`Etapa: ${LBL[e.from]||e.from} → ${LBL[e.to]||e.to}`,""];
+  if(e.t==="contato")return [`${e.canal||"Contato"}${e.com?" com "+e.com:""}`,e.txt||""];
+  if(e.t==="add")return ["Adicionado à lista",""];
+  return [e.txt||"",""];
+}
 persist();
 const byId=id=>data.items.find(i=>i.id===id);
 const visible=()=>data.items.filter(i=>(!q||(i.name+" "+i.cat+" "+i.tipo).toLowerCase().includes(q))&&(!ft||i.tipo===ft));
 function update(id,p,quiet){Object.assign(byId(id),p);persist();if(!quiet)renderAll()}
-function move(id,s){const it=byId(id);if(!it||it.status===s)return;const p={status:s,changed:today()};if(s!=="new"&&!it.contacted)p.contacted=today();update(id,p);toast(`${it.name} agora está em “${LBL[s]}”.`)}
+function move(id,s){const it=byId(id);if(!it||it.status===s)return;const p={status:s,changed:today()};if(s!=="new"&&!it.contacted)p.contacted=today();addLog(it,{t:"status",from:it.status,to:s});update(id,p);toast(`${it.name} agora está em “${LBL[s]}”.`)}
 function wa(p){const d=(p||"").replace(/\D/g,"");const l=d.replace(/^55/,"");return l.length===11&&l[2]==="9"?"https://wa.me/55"+l:null}
-const waiting=it=>it.status==="previa"&&it.contacted&&days(it.contacted)>=2;
+const waiting=it=>it.status==="previa"&&lastAct(it)&&days(lastAct(it))>=2;
 function tag(t){const s=el("span","tag",t);s.style.setProperty("--t",`var(${TCOL(t)})`);return s}
 function actBtn(it){
   const s=it.status;
@@ -267,11 +309,11 @@ function actBtn(it){
   if(w){a.href=w;a.target="_blank";a.rel="noopener";a.title="Abrir no WhatsApp";a.setAttribute("aria-label","WhatsApp de "+it.name);a.append(svg(IC.wa))}
   else if(it.phone){a.href="tel:"+it.phone.replace(/[^\d+]/g,"");a.title="Ligar";a.setAttribute("aria-label","Ligar para "+it.name);a.append(svg(IC.tel))}
   else{const x=el("span","act done");x.append(svg(IC.tel));return x}
-  if(waiting(it)){const w2=el("span","w");w2.append(svg(IC.warn));a.append(w2);a.title=`Sem resposta há ${days(it.contacted)} dias`}
+  if(waiting(it)){const w2=el("span","w");w2.append(svg(IC.warn));a.append(w2);a.title=`Sem resposta há ${days(lastAct(it))} dias`}
   a.onclick=e=>e.stopPropagation();a.ondragstart=e=>e.preventDefault();return a;
 }
 function head(){
-  const I=data.items,c=a=>I.filter(r=>a.includes(r.status)).length,n=I.filter(r=>r.contacted===today()).length;
+  const I=data.items,c=a=>I.filter(r=>a.includes(r.status)).length,n=I.filter(touchedToday).length;
   const open=I.filter(r=>r.status!=="lost").reduce((s,r)=>s+(+r.valor||0),0);
   $("#total").textContent=open?money(open)+" em propostas":"";
   $("#count").textContent=`${I.length} negócios`;
@@ -348,7 +390,7 @@ function drawer(){
   dh.append(x,el("h2",0,it.name),el("p","muted",it.cat||""));
   const stg=el("span","stage");stg.style.setProperty("--c",`var(--s-${it.status})`);stg.append(el("span","dot"),document.createTextNode(LBL[it.status]));dh.append(stg);
   if(it.tipo)dh.append(tag(it.tipo));
-  if(waiting(it))dh.append(el("p","warn",`Sem resposta há ${days(it.contacted)} dias. Mande um lembrete curto.`));
+  if(waiting(it))dh.append(el("p","warn",`Sem resposta há ${days(lastAct(it))} dias. Mande um lembrete curto.`));
   else if(it.contacted)dh.append(el("p","muted",`Primeiro contato em ${br(it.contacted)}.`));
   d.append(dh);
   const s1=el("section","ds");s1.append(el("h3",0,"Próximo passo"));const a=el("div","acts"),w=wa(it.phone);
@@ -356,17 +398,38 @@ function drawer(){
   if(it.phone){const l=el("a","b");l.href="tel:"+it.phone.replace(/[^\d+]/g,"");l.append(svg(IC.tel),document.createTextNode("Ligar"));a.append(l)}
   NEXT[it.status].forEach(([to,lab,main])=>{const b=el("button","b"+(main?" main":""),lab);b.onclick=()=>move(it.id,to);a.append(b)});
   s1.append(a);d.append(s1);
-  const s2=el("section","ds");s2.append(el("h3",0,"Anotações"));
+  const sl=el("section","ds");sl.append(el("h3",0,"Registrar contato"));
+  const fm=el("form","logf"),cs=el("select","t"),cw=el("input","t"),cx=el("textarea","t full"),sb=el("button","b dark full","Registrar contato");
+  cs.setAttribute("aria-label","Canal");CANAIS.forEach(c=>cs.append(el("option",0,c)));if(!w&&it.phone)cs.value="Ligação";
+  cw.setAttribute("aria-label","Com quem falou");cw.placeholder="Com quem falou";cw.value=it.contato||"";
+  cx.setAttribute("aria-label","Resumo da conversa");cx.placeholder="Resumo: o que foi falado e o que ficou combinado";sb.type="submit";
+  fm.append(cs,cw,cx,sb);
+  fm.onsubmit=e=>{e.preventDefault();const com=cw.value.trim();addLog(it,{t:"contato",canal:cs.value,com,txt:cx.value.trim()});
+    const p={};if(com&&!it.contato)p.contato=com;if(!it.contacted)p.contacted=today();
+    if(it.status==="new"){p.status="previa";p.changed=today();addLog(it,{t:"status",from:"new",to:"previa"});toast(`Contato registrado. ${it.name} foi para “Aguardando resposta”.`)}else toast("Contato registrado no histórico.");
+    document.activeElement.blur();update(it.id,p)};
+  sl.append(fm);d.append(sl);
+  const sh=el("section","ds");sh.append(el("h3",0,"Histórico"));
+  const hs=(it.hist||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
+  if(!hs.length)sh.append(el("p","muted","Nada registrado ainda."));
+  else{const ul=el("ul","tl");hs.forEach(e=>{const li=el("li"),[t1,t2]=descr(e);
+    li.style.setProperty("--c",e.t==="status"?`var(--s-${e.to})`:e.t==="contato"?"var(--laranja)":"var(--areia)");
+    const tm=el("time",0,`${br(dayOf(e.d))} às ${hhmm(e.d)}`);tm.dateTime=e.d;li.append(tm,el("p",0,t1));if(t2)li.append(el("small",0,t2));
+    const del=el("button","del",confirmDel===e.id?"Clique de novo para apagar":"Apagar registro");
+    del.onclick=()=>{if(confirmDel!==e.id){confirmDel=e.id;drawer();return}it.hist=it.hist.filter(x=>x.id!==e.id);confirmDel=false;update(it.id,{})};
+    li.append(del);ul.append(li)});sh.append(ul)}
+  d.append(sh);
+  const s2=el("section","ds");s2.append(el("h3",0,"Anotações gerais"));
   const ta=el("textarea","t");ta.setAttribute("aria-label","Anotações");ta.placeholder="O que foi conversado e qual o próximo passo";ta.value=it.notes||"";ta.oninput=()=>update(it.id,{notes:ta.value},true);s2.append(ta);d.append(s2);
   const s3=el("section","ds");s3.append(el("h3",0,"Dados do negócio"));
   const f=(lab,key,sel,type)=>{const w=el("div","field"),l=el("label",0,lab),i=sel?el("select","t"):el("input","t");l.htmlFor="f-"+key;i.id="f-"+key;
     if(sel){sel.forEach(([v,t])=>{const o=el("option",0,t);o.value=v;o.selected=v===it[key];i.append(o)})}else{i.value=it[key]??"";if(type){i.type=type;i.min="0";i.step="0.01";i.inputMode="decimal"}}
     i.onchange=()=>key==="status"?move(it.id,i.value):update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});w.append(l,i);s3.append(w)};
-  f("Nome","name");f("Categoria","cat");f("Telefone","phone");f("Valor da proposta (R$)","valor",null,"number");
+  f("Nome","name");f("Categoria","cat");f("Telefone","phone");f("Pessoa de contato","contato");f("Valor da proposta (R$)","valor",null,"number");
   const tl=TIPOS.includes(it.tipo)||!it.tipo?TIPOS:[it.tipo,...TIPOS];f("Situação do site","tipo",tl.map(t=>[t,t]));f("Etapa","status",ST);
   const la=el("div","acts"),pb=el("button","b",it.lat==null?"Marcar no mapa":"Mudar local no mapa");pb.onclick=()=>startPlacing(it);
-  const del=el("button","b ghost danger",confirmDel?"Clique de novo para remover":"Remover da lista");
-  del.onclick=()=>{if(!confirmDel){confirmDel=true;drawer();return}data.items=data.items.filter(i=>i.id!==it.id);persist();closeDrawer();renderAll();toast(`${it.name} foi removido.`)};
+  const del=el("button","b ghost danger",confirmDel===true?"Clique de novo para remover":"Remover da lista");
+  del.onclick=()=>{if(confirmDel!==true){confirmDel=true;drawer();return}data.items=data.items.filter(i=>i.id!==it.id);persist();closeDrawer();renderAll();toast(`${it.name} foi removido.`)};
   la.append(pb,del);s3.append(la);d.append(s3);
 }
 function newForm(){
@@ -377,17 +440,28 @@ function newForm(){
   const w=el("div","field"),lb=el("label",0,"Situação do site"),s=el("select","t");lb.htmlFor="n-tipo";s.id="n-tipo";TIPOS.forEach(t=>s.append(el("option",0,t)));w.append(lb,s);fm.append(w);
   const sb=el("button","b main","Adicionar e marcar no mapa");sb.type="submit";sb.style.width="100%";fm.append(sb);
   fm.onsubmit=e=>{e.preventDefault();const it={id:"n"+Date.now(),name:vals.name.value.trim(),cat:vals.cat.value.trim(),phone:vals.phone.value.trim(),tipo:s.value,notes:"",status:"new",order:Date.now(),lat:null,lng:null};
-    if(!it.name)return;data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
+    if(!it.name)return;it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
   d.append(fm);vals.name.focus();
+}
+function histView(){
+  const box=$("#histv");box.replaceChildren();const ids=new Set(visible().map(i=>i.id));
+  const all=[];data.items.forEach(it=>{if(ids.has(it.id))(it.hist||[]).forEach(e=>all.push([it,e]))});
+  all.sort((a,b)=>b[1].d.localeCompare(a[1].d));
+  if(!all.length){box.append(el("p","empty","Nenhuma atividade ainda. Mudanças de etapa e contatos registrados aparecem aqui."));return}
+  const ont=new Date(Date.now()-864e5).toLocaleDateString("sv-SE");let cur=null,sec;
+  all.forEach(([it,e])=>{const dd=dayOf(e.d);
+    if(dd!==cur){cur=dd;sec=el("section","day");sec.append(el("h2",0,dd===today()?"Hoje":dd===ont?"Ontem":br(dd)));box.append(sec)}
+    const r=el("div","hrow"),tm=el("time",0,hhmm(e.d)),nb=el("button",0,it.name),[t1,t2]=descr(e),pp=el("p",0,t1);tm.dateTime=e.d;
+    nb.onclick=()=>openItem(it.id);if(t2)pp.append(el("small",0,t2));r.append(tm,nb,pp);sec.append(r)});
 }
 function setView(v){
   view=v;document.querySelectorAll(".tab[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
   document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  $("#board").hidden=v!=="board";$("#mapv").hidden=v!=="map";
+  $("#board").hidden=v!=="board";$("#mapv").hidden=v!=="map";$("#histv").hidden=v!=="hist";
   if(v==="map"){initMap();setTimeout(()=>{map&&map.invalidateSize();markers()},0)}
   renderAll();
 }
-function renderAll(){head();if(view==="board")board();else{side();markers()}if(openId&&!$("#drawer").hidden&&document.activeElement?.tagName!=="TEXTAREA"&&!document.activeElement?.closest?.(".field"))drawer()}
+function renderAll(){head();if(view==="board")board();else if(view==="hist")histView();else{side();markers()}if(openId&&!$("#drawer").hidden&&document.activeElement?.tagName!=="TEXTAREA"&&!document.activeElement?.closest?.(".field"))drawer()}
 
 TIPOS.forEach(t=>{const o=el("option",0,t);o.value=t;$("#ft").append(o)});
 $("#ft").onchange=e=>{ft=e.target.value;renderAll()};

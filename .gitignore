@@ -1,0 +1,5 @@
+.DS_Store
+Thumbs.db
+.vercel
+*.json.bak
+truzav-prospeccao-*.json
