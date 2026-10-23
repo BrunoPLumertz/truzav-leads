@@ -250,6 +250,13 @@ body.pmopen{overflow:hidden}
 .doc table.cmp tr:first-child td{font:inherit}
 .doc table.cmp tr:first-child td:last-child{font-weight:500}
 .doc table.cmp td:last-child{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+.prova{border-left:3px solid var(--laranja);background:var(--surf2);padding:10px 12px;margin:0 0 8px;border-radius:0 3px 3px 0}
+.prova p{margin:0;white-space:pre-wrap}.prova small{display:block;color:var(--soft);margin-top:4px;font-size:12px}
+.prova .del{all:unset;cursor:pointer;color:var(--soft);text-decoration:underline}.prova .del:hover{color:var(--bad)}
+.maplink{display:inline-block;margin:10px 0 0 10px;font-size:13px;font-weight:500;color:var(--ot)}
+.doc blockquote{margin:10px 0;padding:12px 16px;background:#F5F0E8;border-left:3px solid #F0642B;font-size:15px;font-style:italic;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
+.doc blockquote cite{display:block;font-style:normal;font-size:12px;color:#5F594F;margin-top:6px}
 </style>
 </head>
 <body>
@@ -350,7 +357,7 @@ const touchedToday=it=>(it.hist||[]).some(e=>dayOf(e.d)===today()&&(e.t==="conta
 function descr(e){
   if(e.t==="status")return [`Etapa: ${LBL[e.from]||e.from} → ${LBL[e.to]||e.to}`,""];
   if(e.t==="contato")return [`${e.canal||"Contato"}${e.com?" com "+e.com:""}`,e.txt||""];
-  if(e.t==="add")return [e.txt?"Adicionado pela busca ("+e.txt+")":"Adicionado à lista",""];
+  if(e.t==="add")return [e.txt?"Adicionado pelo "+e.txt:"Adicionado à lista",""];
   if(e.t==="proposta")return [`Proposta enviada: ${e.tipo}, ${money(e.valor)}`,""];
   return [e.txt||"",""];
 }
@@ -450,6 +457,7 @@ function drawer(){
   dh.append(x,el("h2",0,it.name),el("p","muted",it.cat||""));
   const stg=el("span","stage");stg.style.setProperty("--c",`var(--s-${it.status})`);stg.append(el("span","dot"),document.createTextNode(LBL[it.status]));dh.append(stg);
   if(it.tipo)dh.append(tag(it.tipo));
+  if(it.maps){const ml=el("a","maplink","Ver no Google Maps");ml.href=it.maps;ml.target="_blank";ml.rel="noopener";dh.append(ml)}
   if(waiting(it))dh.append(el("p","warn",`Sem resposta há ${days(lastAct(it))} dias. Mande um lembrete curto.`));
   else if(it.contacted)dh.append(el("p","muted",`Primeiro contato em ${br(it.contacted)}.`));
   d.append(dh);
@@ -458,6 +466,15 @@ function drawer(){
   if(it.phone){const l=el("a","b");l.href="tel:"+it.phone.replace(/[^\d+]/g,"");l.append(svg(IC.tel),document.createTextNode("Ligar"));a.append(l)}
   NEXT[it.status].forEach(([to,lab,main])=>{const b=el("button","b"+(main?" main":""),lab);b.onclick=()=>move(it.id,to);a.append(b)});
   s1.append(a);d.append(s1);
+  const sv2=el("section","ds");sv2.append(el("h3",0,"Provas para a proposta"));
+  const pv=it.provas||[];
+  if(!pv.length)sv2.append(el("p","muted","Comentários de clientes que mostram falta de site ou de contato. Eles entram na proposta, sem o nome de quem escreveu."));
+  pv.forEach(q=>{const bq=el("div","prova"),t=el("p",0,"“"+q.txt+"”"),m=el("small",0,q.fonte+" · ");const dl=el("button","del","remover");
+    dl.onclick=()=>{it.provas=it.provas.filter(z=>z.id!==q.id);update(it.id,{});toast("Prova removida.")};m.append(dl);bq.append(t,m);sv2.append(bq)});
+  const pf2=el("form","logf"),ptx=el("textarea","t full"),pfo=el("select","t"),pad=el("button","b","Adicionar prova");
+  ptx.placeholder="Cole o comentário, por exemplo uma avaliação do Google";ptx.setAttribute("aria-label","Comentário de cliente");FONTES.forEach(f=>pfo.append(el("option",0,f)));pfo.setAttribute("aria-label","Onde estava o comentário");pad.type="submit";
+  pf2.append(ptx,pfo,pad);pf2.onsubmit=e=>{e.preventDefault();const t=ptx.value.trim();if(!t)return;it.provas=[...(it.provas||[]),{id:uid(),txt:t,fonte:pfo.value,d:now()}];document.activeElement.blur();update(it.id,{});toast("Prova adicionada. Ela já entra na proposta.")};
+  sv2.append(pf2);d.append(sv2);
   const sp=el("section","ds");sp.append(el("h3",0,"Proposta comercial"));
   const lp=(it.hist||[]).filter(e=>e.t==="proposta").pop();
   sp.append(el("p","muted",lp?`Última enviada em ${br(dayOf(lp.d))}: ${lp.tipo}, ${money(lp.valor)}. Ramo: ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n}.`:`Texto pronto para o ramo ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n.toLowerCase()}, ajustável antes de enviar.`));
@@ -531,7 +548,7 @@ const SEG={
   obj:"Transformar quem está pesquisando em aluno, começando por uma aula experimental.",
   sec:["Modalidades e grade de horários","Professores e estrutura","Planos, se quiser mostrar valores","Aula experimental pelo WhatsApp","Depoimentos e fotos dos treinos"],
   sug:["Botão de aula experimental em destaque em todas as seções","Grade de horários fácil de atualizar","Página com resultados e histórias de alunos, com autorização deles"]},
- automotivo:{n:"Automotivo",k:["oficina","mecan","automot","auto car","auto center","autopec","funilar","pneu","cambio","auto eletrica","autoeletrica"],
+ automotivo:{n:"Automotivo",k:["oficina","mecan","borrach","automot","auto car","auto center","autopec","funilar","pneu","cambio","auto eletrica","autoeletrica"],
   obj:"Passar confiança antes do cliente chegar: mostrar quem vocês são, o que fazem e facilitar o pedido de orçamento.",
   sec:["Serviços: revisão, mecânica geral e especialidades","Por que confiar: experiência e avaliações de clientes","Pedido de orçamento pelo WhatsApp","Localização, horários e estrutura","Fotos da oficina e da equipe"],
   sug:["Pedido de orçamento com modelo, ano e problema do carro, que já chega organizado no WhatsApp","Avaliações do Google em destaque","Seção de dúvidas comuns, como prazo de revisão e garantia do serviço"]},
@@ -568,6 +585,9 @@ const SITU={"Sem site":"Hoje, quem procura vocês no Google encontra só o perfi
 const TIPO_P={landing:["Landing page","Uma página única e direta, com tudo o que o cliente precisa para decidir e chamar você."],
  site:["Site","Um site com páginas para cada assunto, mais espaço para mostrar o seu trabalho e para aparecer no Google."]};
 const PDEF={landing:720,site:1350};
+function provBlock(it){const q=it.provas||[];
+  return `<h2>O que os clientes já estão dizendo</h2>${q.map(x=>`<blockquote>“${esc(x.txt)}”<cite>${esc(x.fonte)}</cite></blockquote>`).join("")}
+<p>${q.length>1?"São pessoas":"É alguém"} que ${q.length>1?"queriam":"queria"} falar com vocês e não ${q.length>1?"encontraram":"encontrou"} um caminho fácil. Um site com telefone, WhatsApp, horários e localização sempre à mão resolve isso, e quem chega pelo Google já encontra tudo.</p>`}
 const WHY_OFF=["Site fraco ou desatualizado","Site de construtor gratuito"];
 function whyBlock(it){
   const redes=it.tipo==="Só Instagram"?"Instagram":it.tipo==="Só Facebook"?"Facebook":"Instagram ou Facebook";
@@ -585,7 +605,7 @@ function whyBlock(it){
 <p>As redes continuam importantes: elas atraem e mostram o dia a dia. O site organiza, aparece nas buscas e leva o cliente ao contato. Um leva ao outro: o link do site vai na bio, e o site mostra as fotos do ${it.tipo==="Só Facebook"?"Facebook":"Instagram"}.</p>`;
 }
 const cfg=()=>Object.assign({pag:"50% na aprovação dos textos e 50% na publicação",mens:"",val:15},data.cfg||{});
-function propOpts(it){const c=cfg(),o=Object.assign({why:!WHY_OFF.includes(it.tipo),tipo:"landing",seg:segOf(it),pag:c.pag,mens:c.mens,val:c.val,prazo:"",para:it.contato||""},it.prop||{});
+function propOpts(it){const c=cfg(),o=Object.assign({prov:true,why:!WHY_OFF.includes(it.tipo),tipo:"landing",seg:segOf(it),pag:c.pag,mens:c.mens,val:c.val,prazo:"",para:it.contato||""},it.prop||{});
   if(o.valor==null)o.valor=+it.valor||PDEF[o.tipo];return o}
 function propHTML(it,o){
   const S=SEG[o.seg]||SEG.geral,T=TIPO_P[o.tipo],adv=/advoc|advog/.test(norm(it.cat+" "+it.name));
@@ -598,6 +618,7 @@ function propHTML(it,o){
 <h1>${esc(T[0])} para ${esc(it.name)}</h1>
 <p class="lead">${esc(S.obj)}</p>
 <h2>Como está hoje</h2><p>${esc(SITU[it.tipo]||SITU.Outro)}</p>
+${o.prov&&(it.provas||[]).length?provBlock(it):""}
 ${o.why?whyBlock(it):""}
 <h2>O que propomos</h2><p>${esc(T[1])} O conteúdo previsto:</p><ul>${li(S.sec)}</ul>
 <h2>Sugestões da TRUZAV</h2><p>Mais do que montar páginas, pensamos junto com você no que pode trazer mais clientes:</p><ul>${li(S.sug)}</ul>
@@ -619,6 +640,7 @@ function waText(doc){
     if(tg==="H1")out.push("*"+tx+"*");else if(tg==="H2")out.push("\n*"+tx+"*");
     else if(tg==="UL")n.querySelectorAll("li").forEach(l=>out.push("• "+l.innerText.trim()));
     else if(tg==="OL")n.querySelectorAll("li").forEach((l,i)=>out.push(`${i+1}. `+l.innerText.trim()));
+    else if(tg==="BLOCKQUOTE")out.push("> "+n.childNodes[0].textContent.trim()+" ("+(n.querySelector("cite")?.innerText||"").trim()+")");
     else if(tg==="TABLE"&&n.classList.contains("cmp"))n.querySelectorAll("tbody tr").forEach(r=>out.push("• "+r.cells[0].innerText.trim()+": "+r.cells[2].innerText.trim()));
     else if(tg==="TABLE")n.querySelectorAll("tr").forEach(r=>out.push(r.cells[0].innerText.trim()+": "+r.cells[1].innerText.trim()));
     else if(tg==="FOOTER")out.push("\n"+tx);else out.push(tx)});
@@ -642,13 +664,15 @@ function proposal(){
   const pz=el("input","t");pz.id="p-prazo";pz.placeholder="Ex.: 15 dias após aprovar os textos";pz.value=o.prazo;fld("Prazo (opcional)",pz);
   const pa=el("input","t");pa.id="p-para";pa.value=o.para;fld("Aos cuidados de",pa);
   const vd=el("input","t");vd.id="p-vd";vd.type="number";vd.min="1";vd.value=o.val;fld("Validade (dias)",vd);
-  const wl=el("label","chk"),wy=el("input");wy.type="checkbox";wy.id="p-why";wy.checked=!!o.why;wl.append(wy,document.createTextNode(" Incluir “Por que ter site se já tenho redes sociais?”"));wl.style.margin="2px 0 14px";side.append(wl);
+  const wl=el("label","chk"),wy=el("input");wy.type="checkbox";wy.id="p-why";wy.checked=!!o.why;wl.append(wy,document.createTextNode(" Incluir “Por que ter site se já tenho redes sociais?”"));wl.style.margin="2px 0 8px";side.append(wl);
+  const nP=(it.provas||[]).length,pl=el("label","chk"),pv=el("input");pv.type="checkbox";pv.id="p-prov";pv.checked=!!o.prov&&nP>0;pv.disabled=!nP;
+  pl.append(pv,document.createTextNode(nP?` Incluir comentários de clientes (${nP})`:" Sem comentários de clientes ainda (adicione em “Provas para a proposta”)"));pl.style.margin="0 0 14px";side.append(pl);
   const en=el("p","warn");en.hidden=true;side.append(en);
   function editNote(){const ed=!!(it.prop&&it.prop.edited);en.hidden=!ed;en.textContent="Você editou o texto direto na proposta. Mudar as opções acima vai desfazer essas edições."}
-  const onOpt=()=>{const p={why:wy.checked,tipo:tp.value,seg:sg.value,valor:+vl.value||0,pag:pg.value.trim(),mens:ms.value,prazo:pz.value.trim(),para:pa.value.trim(),val:+vd.value||15};
+  const onOpt=()=>{const p={prov:pv.checked||!nP,why:wy.checked,tipo:tp.value,seg:sg.value,valor:+vl.value||0,pag:pg.value.trim(),mens:ms.value,prazo:pz.value.trim(),para:pa.value.trim(),val:+vd.value||15};
     if(tp.value!==o.tipo&&(+vl.value===PDEF[o.tipo])){p.valor=PDEF[tp.value];vl.value=p.valor}
     o.tipo=tp.value;save(p);regen()};
-  [tp,sg,vl,pg,ms,pz,pa,vd,wy].forEach(n=>n.onchange=onOpt);
+  [tp,sg,vl,pg,ms,pz,pa,vd,wy,pv].forEach(n=>n.onchange=onOpt);
   const acts=el("div","pmacts");
   const pr=el("button","b main","Salvar em PDF ou imprimir");pr.onclick=()=>window.print();
   const cp=el("button","b","Copiar texto para o WhatsApp");cp.onclick=async()=>{try{await navigator.clipboard.writeText(waText(doc));toast("Texto copiado. Cole na conversa do WhatsApp.")}catch(e){toast("Não foi possível copiar. Selecione o texto da proposta e copie manualmente.")}};
@@ -665,110 +689,81 @@ function proposal(){
   pm.append(side,main);editNote();
 }
 
-/* ===== Busca de negócios (OpenStreetMap, gratuita) ===== */
-const OSM_EP=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass.private.coffee/api/interpreter"];
-const RAMOS={
- todos:["Todos os ramos",[]],
- beleza:["Barbearias, salões e estética",['shop=hairdresser','shop=beauty','shop=cosmetics']],
- automotivo:["Oficinas e serviços automotivos",['shop=car_repair','shop=tyres','shop=car_parts','amenity=car_wash']],
- saude:["Clínicas, consultórios e dentistas",['amenity=clinic','amenity=doctors','amenity=dentist','healthcare=physiotherapist','healthcare=psychotherapist']],
- pet:["Veterinárias e pet shops",['amenity=veterinary','shop=pet','shop=pet_grooming']],
- alimentacao:["Padarias, confeitarias e cafés",['shop=bakery','shop=confectionery','shop=pastry','amenity=cafe']],
- restaurantes:["Restaurantes e lanchonetes",['amenity=restaurant','amenity=fast_food','amenity=ice_cream']],
- fitness:["Academias e estúdios",['leisure=fitness_centre','leisure=sports_centre','sport=yoga']],
- juridico:["Advocacia e contabilidade",['office=lawyer','office=accountant','office=notary']],
- imobiliaria:["Imobiliárias",['office=estate_agent']],
- construcao:["Construção e arquitetura",['office=architect','craft=builder','shop=doityourself','shop=hardware']],
- educacao:["Escolas, cursos e autoescolas",['amenity=driving_school','amenity=language_school','amenity=music_school','amenity=prep_school']],
- lojas:["Lojas em geral",['shop=clothes','shop=shoes','shop=furniture','shop=florist','shop=gift','shop=jewelry','shop=optician','shop=mobile_phone','shop=variety_store']]};
-const CATN={hairdresser:"Salão de beleza",beauty:"Estética",cosmetics:"Cosméticos",car_repair:"Oficina mecânica",tyres:"Borracharia",car_parts:"Autopeças",car_wash:"Lavagem automotiva",
- clinic:"Clínica",doctors:"Consultório médico",dentist:"Dentista",physiotherapist:"Fisioterapia",psychotherapist:"Psicologia",veterinary:"Clínica veterinária",pet:"Pet shop",pet_grooming:"Banho e tosa",
- bakery:"Padaria",confectionery:"Confeitaria",pastry:"Confeitaria",cafe:"Café",restaurant:"Restaurante",fast_food:"Lanchonete",ice_cream:"Sorveteria",fitness_centre:"Academia",sports_centre:"Centro esportivo",yoga:"Estúdio de yoga",
- lawyer:"Advocacia",accountant:"Contabilidade",notary:"Cartório",estate_agent:"Imobiliária",architect:"Arquitetura",builder:"Construtora",doityourself:"Material de construção",hardware:"Ferragem",
- driving_school:"Autoescola",language_school:"Escola de idiomas",music_school:"Escola de música",prep_school:"Reforço escolar",
- clothes:"Loja de roupas",shoes:"Calçados",furniture:"Móveis",florist:"Floricultura",gift:"Presentes",jewelry:"Joalheria",optician:"Ótica",mobile_phone:"Celulares e acessórios",variety_store:"Variedades"};
-let found=[],pick=new Set(),fstate={city:"Viamão",ramo:"todos",raio:10,onlyNo:true,busy:false,err:"",info:""};
-const CIDADES={"viamao":[-30.0810,-51.0230],"alvorada":[-29.9900,-51.0810],"gravatai":[-29.9440,-50.9910],"porto alegre":[-30.0340,-51.2170],"cachoeirinha":[-29.9510,-51.0940],"canoas":[-29.9180,-51.1830],"esteio":[-29.8520,-51.1790],"sapucaia do sul":[-29.8300,-51.1450],"glorinha":[-29.8790,-50.7730],"santo antonio da patrulha":[-29.8180,-50.5190]};
-async function geocode(city){
-  const k=norm(city).trim();if(CIDADES[k])return {lat:CIDADES[k][0],lon:CIDADES[k][1],src:"lista da ferramenta"};
-  const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q="+encodeURIComponent(city));
-  if(!r.ok)throw new Error("geo");const j=await r.json();if(!j.length)return null;
-  return {lat:+j[0].lat,lon:+j[0].lon,src:"OpenStreetMap"};
+/* ===== Novos leads pelo Google Maps (link colado) ===== */
+const CID_LIST=["Viamão","Alvorada","Gravataí","Porto Alegre","Cachoeirinha","Canoas","Esteio","Sapucaia do Sul","Glorinha","Santo Antônio da Patrulha"];
+const TERMOS=[["barbearia","Barbearia"],["salão de beleza","Salão de beleza"],["clínica de estética","Estética"],["manicure","Manicure"],["oficina mecânica","Oficina mecânica"],["auto elétrica","Auto elétrica"],["borracharia","Borracharia"],["clínica médica","Clínica médica"],["dentista","Dentista"],["fisioterapia","Fisioterapia"],["psicólogo","Psicologia"],["clínica veterinária","Clínica veterinária"],["pet shop","Pet shop"],["padaria","Padaria"],["confeitaria","Confeitaria"],["restaurante","Restaurante"],["lanchonete","Lanchonete"],["pizzaria","Pizzaria"],["academia","Academia"],["personal trainer","Personal trainer"],["advogado","Advocacia"],["contabilidade","Contabilidade"],["imobiliária","Imobiliária"],["construtora","Construtora"],["arquiteto","Arquitetura"],["marmoraria","Marmoraria"],["autoescola","Autoescola"],["escola de idiomas","Escola de idiomas"],["loja de roupas","Loja de roupas"],["ótica","Ótica"],["floricultura","Floricultura"],["fotógrafo","Fotografia"],["buffet","Buffet"]];
+const FONTES=["Avaliação no Google","Comentário no Instagram","Comentário no Facebook","Outro"];
+let gstate={city:"Viamão",termo:"barbearia",outro:"",busy:false,err:"",pend:null};
+function parseMaps(u){
+  let s;try{s=decodeURIComponent(u)}catch(e){s=u}
+  const nm=(s.match(/\/maps\/place\/([^/@?]+)/)||[])[1];
+  const m=s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)||s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  let q="";try{q=new URL(u).searchParams.get("q")||""}catch(e){}
+  return {name:(nm||q||"").replace(/\+/g," ").trim(),lat:m?+m[1]:null,lng:m?+m[2]:null};
 }
-function osmQuery(g,tags,raio){
-  const sel=tags.map(t=>{const [k,v]=t.split("=");return `nwr["${k}"="${v}"]["name"](around:${raio},${g.lat},${g.lon});`}).join("");
-  return `[out:json][timeout:30];(${sel});out center 300;`;
+async function resolveMaps(txt){
+  const mu=txt.match(/https?:\/\/\S+/);if(!mu)throw new Error("Cole um link do Google Maps (começa com https://).");
+  const link=mu[0].replace(/[)\].,]+$/,""),before=txt.slice(0,mu.index).trim().split("\n").filter(Boolean)[0]||"";
+  let host="";try{host=new URL(link).hostname}catch(e){throw new Error("Esse link não parece válido.")}
+  let full=link;
+  if(/(^|\.)goo\.gl$/.test(host)){
+    let r;try{r=await fetch("/api/maps?u="+encodeURIComponent(link))}catch(e){r=null}
+    if(!r||!r.ok)throw new Error(location.protocol==="file:"?"Links curtos (maps.app.goo.gl) só funcionam pela ferramenta na Vercel. Aqui no arquivo local, abra o link no navegador e cole o endereço completo da barra.":"Não consegui abrir esse link curto agora. Tente de novo ou cole o endereço completo da barra do navegador.");
+    full=(await r.json()).url||link;
+  }else if(!/google\./.test(host))throw new Error("Esse link não é do Google Maps.");
+  const p=parseMaps(full);if(!p.name&&before)p.name=before;
+  if(!p.name&&p.lat==null)throw new Error("Não consegui ler esse link. Abra o negócio no Google Maps (não a lista de resultados) e copie o link dele.");
+  return {...p,link};
 }
-async function osmFetch(q){
-  let last;for(const ep of OSM_EP){try{const r=await fetch(ep,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
-    if(!r.ok){last=new Error("HTTP "+r.status);continue}return await r.json()}catch(e){last=e}}
-  throw last||new Error("sem resposta");
-}
-function fromOSM(e,city){
-  const t=e.tags||{},lat=e.lat??e.center?.lat,lng=e.lon??e.center?.lon;
-  const kv=Object.entries(t).find(([k,v])=>["shop","amenity","leisure","office","craft","healthcare","sport"].includes(k)&&CATN[v]);
-  let cat=kv?CATN[kv[1]]:"Comércio";if(kv&&kv[1]==="hairdresser"&&/barb/i.test(t.name))cat="Barbearia";
-  const site=t.website||t["contact:website"]||t.url||"",ig=t["contact:instagram"]||t.instagram||"",fb=t["contact:facebook"]||t.facebook||"";
-  const tipo=site?"Outro":ig?"Só Instagram":fb?"Só Facebook":"Sem site";
-  const addr=[[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(", "),t["addr:suburb"]].filter(Boolean).join(", ");
-  return {osm:e.type+"/"+e.id,name:t.name,cat,phone:t.phone||t["contact:phone"]||t["contact:mobile"]||t.mobile||"",site,tipo,addr,lat,lng,city};
-}
-const dist=(a,b,c,d)=>Math.hypot((a-c)*111e3,(b-d)*96e3);
-const already=f=>data.items.some(i=>i.osm===f.osm||norm(i.name)===norm(f.name)||(i.lat!=null&&f.lat!=null&&dist(i.lat,i.lng,f.lat,f.lng)<30&&norm(i.name).split(" ")[0]===norm(f.name).split(" ")[0]));
-async function runFind(){
-  fstate.busy=true;fstate.err="";fstate.info="";found=[];pick.clear();findForm();
-  try{
-    let g;try{g=await geocode(fstate.city)}catch(e){g=undefined}
-    if(g===null){fstate.err=`Não encontrei a cidade “${fstate.city}”. Confira o nome, por exemplo: Alvorada, Gravataí.`}
-    else if(!g){fstate.err="Não consegui localizar a cidade agora. Tente Viamão, Alvorada, Gravataí, Porto Alegre, Cachoeirinha ou Canoas, que já estão na ferramenta."}
-    else{
-      const tags=fstate.ramo==="todos"?Object.values(RAMOS).flatMap(r=>r[1]):RAMOS[fstate.ramo][1];
-      const j=await osmFetch(osmQuery(g,tags,fstate.raio*1000));
-      const seen=new Set(),raw=j.elements||[];
-      found=raw.map(e=>fromOSM(e,fstate.city)).filter(f=>f.name&&f.lat!=null&&!seen.has(norm(f.name))&&seen.add(norm(f.name)));
-      found.sort((a,b)=>(a.tipo==="Outro")-(b.tipo==="Outro")||a.name.localeCompare(b.name));
-      found.forEach(f=>{if(!already(f)&&f.tipo!=="Outro")pick.add(f.osm)});
-      fstate.info=`Busca num raio de ${fstate.raio} km do centro de ${fstate.city}: o OpenStreetMap devolveu ${raw.length} ${raw.length===1?"lugar":"lugares"}.`;
-    }
-  }catch(e){fstate.err="O OpenStreetMap não respondeu. Confira a internet e tente de novo em alguns segundos."}
-  fstate.busy=false;fstate.searched=true;findForm();
-}
-function addPicked(){
-  const sel=found.filter(f=>pick.has(f.osm)&&!already(f));if(!sel.length){toast("Nenhum negócio novo selecionado.");return}
-  sel.forEach((f,i)=>data.items.push({id:"o"+Date.now()+i,osm:f.osm,name:f.name,cat:f.cat,tipo:f.tipo,phone:f.phone,lat:f.lat,lng:f.lng,status:"new",order:Date.now()+i,
-    notes:[f.site?"Site cadastrado: "+f.site:"",f.addr?"Endereço: "+f.addr:""].filter(Boolean).join("\n"),hist:[{id:uid(),d:now(),t:"add",txt:"OpenStreetMap"}]}));
-  persist();pick.clear();renderAll();findForm();toast(`${sel.length} negócio${sel.length>1?"s":""} adicionado${sel.length>1?"s":""} em “A contatar”.`);
-}
+const dup=name=>data.items.find(i=>norm(i.name)===norm(name));
 function findForm(){
   openId=null;const d=$("#drawer");d.replaceChildren();showDrawer();d.setAttribute("aria-label","Buscar negócios");
   const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;
-  dh.append(x,el("h2",0,"Buscar negócios"),el("p","muted","Busca gratuita na base do OpenStreetMap. Ela tem menos comércios que o Google, então confira cada um no Google Maps antes de abordar."));d.append(dh);
-  const fm=el("form","ds"),w1=el("div","field"),l1=el("label",0,"Cidade"),ci=el("input","t");l1.htmlFor="b-city";ci.id="b-city";ci.value=fstate.city;ci.required=true;w1.append(l1,ci);
-  const w2=el("div","field"),l2=el("label",0,"Ramo"),rs=el("select","t");l2.htmlFor="b-ramo";rs.id="b-ramo";Object.entries(RAMOS).forEach(([k,v])=>{const o=el("option",0,v[0]);o.value=k;rs.append(o)});rs.value=fstate.ramo;w2.append(l2,rs);
-  const w3=el("div","field"),l3=el("label",0,"Distância do centro"),ra=el("select","t");l3.htmlFor="b-raio";ra.id="b-raio";[3,5,10,20].forEach(k=>{const o=el("option",0,k+" km");o.value=k;ra.append(o)});ra.value=fstate.raio;w3.append(l3,ra);
-  const sb=el("button","b main",fstate.busy?"Buscando…":"Buscar");sb.type="submit";sb.disabled=fstate.busy;sb.style.width="100%";
-  fm.append(w1,w2,w3,sb);fm.onsubmit=e=>{e.preventDefault();fstate.city=ci.value.trim()||"Viamão";fstate.ramo=rs.value;fstate.raio=+ra.value;runFind()};d.append(fm);
-  const r=el("section","ds");
-  if(fstate.info&&!fstate.busy)r.append(el("p","muted",fstate.info));
-  if(fstate.err)r.append(el("p","warn",fstate.err));
-  else if(!fstate.busy&&found.length){
-    const nov=found.filter(f=>!already(f));
-    const hd=el("div","fhd"),cb=el("label","chk"),ck=el("input");ck.type="checkbox";ck.checked=fstate.onlyNo;ck.onchange=()=>{fstate.onlyNo=ck.checked;findForm()};
-    cb.append(ck,document.createTextNode(" Só quem não tem site cadastrado"));
-    hd.append(el("h3",0,`${found.length} encontrados, ${nov.length} fora do funil`),cb);r.append(hd);
-    const list=found.filter(f=>!fstate.onlyNo||f.tipo!=="Outro");
-    if(!list.length)r.append(el("p","muted","Todos os encontrados têm site cadastrado. Desmarque o filtro para ver a lista."));
-    list.forEach(f=>{const inF=already(f),row=el("label","fres"+(inF?" off":"")),c=el("input");c.type="checkbox";c.disabled=inF;c.checked=pick.has(f.osm)&&!inF;
-      c.onchange=()=>{c.checked?pick.add(f.osm):pick.delete(f.osm);upd()};
-      const m=el("span","cm");m.append(el("strong",0,f.name),el("small",0,[f.cat,f.phone||"sem telefone cadastrado"].join(", ")));
-      const tg=el("span","fmeta");tg.append(inF?el("span","tag","Já está no funil"):tag(f.tipo==="Outro"?"Tem site cadastrado":f.tipo));
-      const gm=el("a",0,"Ver no Google Maps");gm.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(f.name+" "+f.city);gm.target="_blank";gm.rel="noopener";gm.onclick=e=>e.stopPropagation();tg.append(gm);
-      m.append(tg);if(inF)tg.firstChild.style.setProperty("--t","var(--soft)");row.append(c,m);r.append(row)});
-    const ab=el("button","b main","");ab.style.cssText="width:100%;position:sticky;bottom:12px;margin-top:12px";ab.onclick=addPicked;
-    const upd=()=>{const n=[...pick].filter(id=>{const f=found.find(x=>x.osm===id);return f&&!already(f)}).length;ab.textContent=n?`Adicionar ${n} ao funil`:"Selecione negócios para adicionar";ab.disabled=!n};upd();r.append(ab);
-  }else if(!fstate.busy&&fstate.searched)r.append(el("p","muted","O OpenStreetMap não tem negócios desse ramo cadastrados nessa área. Tente “Todos os ramos”, aumente a distância ou procure no Google Maps."));
-  const gl=el("a","b link","Procurar esse ramo no Google Maps");gl.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((fstate.ramo==="todos"?"comércios":RAMOS[fstate.ramo][0].split(",")[0])+" em "+fstate.city);gl.target="_blank";gl.rel="noopener";gl.style.marginTop="10px";
-  r.append(gl);d.append(r);
+  dh.append(x,el("h2",0,"Buscar negócios"),el("p","muted","Pesquise no Google Maps, abra o negócio e cole o link aqui."));d.append(dh);
+  // passo 1
+  const s1=el("form","ds");s1.append(el("h3",0,"1. Pesquisar no Google Maps"));
+  const w1=el("div","field"),l1=el("label",0,"Cidade"),ci=el("input","t");l1.htmlFor="g-city";ci.id="g-city";ci.value=gstate.city;ci.setAttribute("list","g-cities");
+  const dl=el("datalist");dl.id="g-cities";CID_LIST.forEach(c=>{const o=el("option");o.value=c;dl.append(o)});w1.append(l1,ci,dl);
+  const w2=el("div","field"),l2=el("label",0,"Ramo"),rs=el("select","t");l2.htmlFor="g-ramo";rs.id="g-ramo";
+  TERMOS.forEach(([t,lab])=>{const o=el("option",0,lab);o.value=t;rs.append(o)});const oo=el("option",0,"Outro termo…");oo.value="";rs.append(oo);rs.value=gstate.termo;
+  const ot=el("input","t");ot.placeholder="Ex.: serralheria";ot.value=gstate.outro;ot.hidden=rs.value!=="";ot.setAttribute("aria-label","Outro termo de busca");ot.style.marginTop="6px";
+  rs.onchange=()=>{ot.hidden=rs.value!=="";if(!ot.hidden)ot.focus()};w2.append(l2,rs,ot);
+  const ob=el("button","b main","Abrir busca no Google Maps");ob.type="submit";ob.style.width="100%";
+  s1.append(w1,w2,ob);
+  s1.onsubmit=e=>{e.preventDefault();gstate.city=ci.value.trim()||"Viamão";gstate.termo=rs.value;gstate.outro=ot.value.trim();
+    const term=gstate.termo||gstate.outro;if(!term){ot.focus();return}
+    window.open("https://www.google.com/maps/search/"+encodeURIComponent(term+" em "+gstate.city),"_blank","noopener")};
+  const tip=el("p","muted");tip.style.marginTop="12px";tip.textContent="No Google Maps, abra cada negócio. Se o perfil não tiver o botão “Site”, é um lead. Leia também as avaliações: comentários como “não consegui falar com ninguém” são ótimas provas. Para pegar o link: Compartilhar e depois Copiar link.";
+  s1.append(tip);d.append(s1);
+  // passo 2
+  const s2=el("section","ds");s2.append(el("h3",0,"2. Colar o link do negócio"));
+  const pf=el("form"),li=el("input","t");li.placeholder="https://maps.app.goo.gl/…";li.setAttribute("aria-label","Link do Google Maps");
+  const pb=el("button","b",gstate.busy?"Lendo o link…":"Puxar dados");pb.type="submit";pb.disabled=gstate.busy;pb.style.cssText="width:100%;margin-top:8px";
+  pf.append(li,pb);s2.append(pf);
+  pf.onsubmit=async e=>{e.preventDefault();if(!li.value.trim())return;gstate.busy=true;gstate.err="";gstate.pend=null;const v=li.value;findForm();
+    try{gstate.pend=await resolveMaps(v)}catch(er){gstate.err=er.message;gstate.lastLink=v}gstate.busy=false;findForm()};
+  if(gstate.err){s2.append(el("p","warn",gstate.err));li.value=gstate.lastLink||""}
+  if(gstate.pend){
+    const P=gstate.pend,ex=dup(P.name||"");
+    if(ex){const w=el("p","warn",`${ex.name} já está no funil, em “${LBL[ex.status]}”.`);const ob2=el("button","b",`Abrir ${ex.name}`);ob2.style.marginTop="8px";ob2.onclick=()=>{gstate.pend=null;openItem(ex.id)};s2.append(w,ob2)}
+    else{
+      const fm=el("form");fm.style.marginTop="14px";const V={};
+      const fld=(lab,k,node)=>{const w=el("div","field"),l=el("label",0,lab);node.id="g-"+k;l.htmlFor=node.id;w.append(l,node);fm.append(w);V[k]=node;return node};
+      const n=fld("Nome","name",el("input","t"));n.value=P.name;n.required=true;
+      const c=fld("Categoria","cat",el("input","t"));c.value=(TERMOS.find(t=>t[0]===gstate.termo)||[])[1]||"";
+      const ph=fld("Telefone (copie do Google Maps)","phone",el("input","t"));ph.inputMode="tel";
+      const tp=fld("Situação do site","tipo",el("select","t"));TIPOS.forEach(t=>tp.append(el("option",0,t)));
+      const pr=fld("Comentário de cliente (opcional)","prova",el("textarea","t"));pr.placeholder="Cole aqui uma avaliação que mostre a falta de site ou de contato";pr.style.minHeight="80px";
+      fm.append(el("p","muted",P.lat!=null?"Local no mapa: encontrado pelo link.":"Local no mapa: não veio no link. Você pode marcar depois."));
+      const ab=el("button","b main","Adicionar ao funil");ab.type="submit";ab.style.cssText="width:100%;margin-top:10px";fm.append(ab);
+      fm.onsubmit=e=>{e.preventDefault();const nm=n.value.trim();if(!nm)return;if(dup(nm)){toast(`${nm} já está no funil.`);return}
+        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:ph.value.trim(),tipo:tp.value,lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
+          provas:pr.value.trim()?[{id:uid(),txt:pr.value.trim(),fonte:FONTES[0],d:now()}]:[],hist:[{id:uid(),d:now(),t:"add",txt:"Google Maps"}]};
+        data.items.push(it);persist();gstate.pend=null;gstate.err="";renderAll();findForm();toast(`${nm} foi adicionado em “A contatar”.`)};
+      s2.append(fm);
+    }
+  }
+  d.append(s2);
 }
 
 function histView(){

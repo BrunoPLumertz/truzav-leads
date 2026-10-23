@@ -2,7 +2,13 @@
 
 Ferramenta interna da TRUZAV para prospectar clientes: funil em quadro (kanban), mapa dos negócios e metas diárias.
 
-É um site estático de um arquivo só (`index.html`), sem etapa de build.
+É um site estático (`index.html`) com uma função pequena em `api/maps.js`, sem etapa de build.
+
+## Função `api/maps.js`
+
+Abre links curtos do Google Maps (`maps.app.goo.gl`) e devolve o endereço completo, de onde a ferramenta tira nome e localização do negócio. Não usa API do Google nem chave: só segue os redirecionamentos do link. Aceita apenas links do Google.
+
+No arquivo aberto direto do computador a função não existe: nesse caso, cole o link completo da barra de endereço do Google Maps.
 
 ## Como os dados funcionam
 
