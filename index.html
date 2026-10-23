@@ -775,22 +775,27 @@ function findForm(){
 /* ===== Mensagens prontas ===== */
 const saud=()=>{const h=new Date().getHours();return h<12?"Bom dia":h<18?"Boa tarde":"Boa noite"};
 const firstName=it=>((it.contato||"").split(/[,(\-–]/)[0].trim().split(/\s+/)[0]||"");
+const ART_M=["centro","studio","estudio","espaco","salao","restaurante","instituto","escritorio","consultorio","atelie","mercado","mercadinho","bar","cafe","pet","petshop","hotel","laboratorio","ct","clube","buffet","armazem","emporio","acougue","posto","brecho","grupo","auto","box","sitio"];
+const ART_F=["barbearia","clinica","padaria","confeitaria","doceria","academia","oficina","mecanica","loja","imobiliaria","construtora","escola","pizzaria","lanchonete","otica","farmacia","estetica","advocacia","contabilidade","floricultura","casa","distribuidora","agencia","autoescola","papelaria","livraria","sorveteria","hamburgueria","cafeteria","marmoraria","vidracaria","serralheria","borracharia","funilaria","lavanderia","ferragem","madeireira","creche","cervejaria","pastelaria","tabacaria","adega","boutique","otica"];
+const artOf=n=>{const w=norm(n).split(/[^a-z0-9]+/).filter(Boolean)[0]||"";return ART_M.includes(w)?"o":ART_F.includes(w)?"a":""};
+const deArt=n=>({o:"do ",a:"da "}[artOf(n)]||"de ")+n;
+const paraArt=n=>"para "+({o:"o ",a:"a "}[artOf(n)]||"")+n;
 function msgs(it){
   const n=it.name,pn=firstName(it),oi=pn?`Oi, ${pn}!`:"Oi, tudo bem?",hasP=(it.provas||[]).length>0;
   const apres="Sou da TRUZAV, criamos sites para empresas da região.";
   const prova="um cliente comentou que tentou falar com vocês e não conseguiu. Com um site, telefone, WhatsApp e horários ficam sempre à mão, e isso não se perde mais.";
-  const enviar=`${oi} Como combinamos, segue a proposta do site da ${n}.\n\nColoquei como está hoje, o que o site teria e algumas sugestões pensadas para o que vocês fazem.\n\nDá uma olhada com calma e me conta o que achou. Se quiser ajustar alguma coisa, a gente adapta.`;
-  const enviarP=`${oi} Segue a proposta do site da ${n}.\n\nUma coisa me chamou atenção: no Google, ${prova}\n\nEstá tudo explicado no PDF. Qualquer dúvida, é só me chamar por aqui.`;
+  const enviar=`${oi} Como combinamos, segue a proposta do site ${deArt(n)}.\n\nColoquei como está hoje, o que o site teria e algumas sugestões pensadas para o que vocês fazem.\n\nDá uma olhada com calma e me conta o que achou. Se quiser ajustar alguma coisa, a gente adapta.`;
+  const enviarP=`${oi} Segue a proposta do site ${deArt(n)}.\n\nUma coisa me chamou atenção: no Google, ${prova}\n\nEstá tudo explicado no PDF. Qualquer dúvida, é só me chamar por aqui.`;
   const M={
-   new:[!pn&&["Descobrir quem decide",`${saud()}! Falo com a ${n}? Quem cuida da divulgação de vocês?`],
-        ["Primeiro contato com proposta",pn?`Oi, ${pn}, tudo bem? ${apres}\n\nVi o perfil da ${n} no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`:`Oi, pessoal da ${n}, tudo bem? ${apres}\n\nVi o perfil de vocês no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`],
-        hasP&&["Primeiro contato citando comentário",`${pn?`Oi, ${pn}, tudo bem?`:`Oi, pessoal da ${n}, tudo bem?`} ${apres}\n\nVi o perfil de vocês no Google e um comentário me chamou atenção: ${prova}\n\nPreparei uma proposta, sem compromisso. Posso te mandar?`]],
+   new:[!pn&&["Descobrir quem decide",`${saud()}, tudo bem? Aqui é da TRUZAV, criamos sites para empresas da região.\n\nVi o perfil ${deArt(n)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá. Com quem eu posso falar sobre isso?`],
+        ["Primeiro contato com proposta",pn?`Oi, ${pn}, tudo bem? ${apres}\n\nVi o perfil ${deArt(n)} no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`:`Oi, pessoal ${deArt(n)}, tudo bem? ${apres}\n\nVi o perfil de vocês no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`],
+        hasP&&["Primeiro contato citando comentário",`${pn?`Oi, ${pn}, tudo bem?`:`Oi, pessoal ${deArt(n)}, tudo bem?`} ${apres}\n\nVi o perfil de vocês no Google e um comentário me chamou atenção: ${prova}\n\nPreparei uma proposta, sem compromisso. Posso te mandar?`]],
    previa:[["Lembrete",`${oi} Passando para saber se você viu minha mensagem. Se preferir, te explico em um áudio rápido.`],["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
    conv:[["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
    prop:[["Lembrete da proposta",`${oi} Conseguiu dar uma olhada na proposta? Se tiver alguma dúvida ou quiser ajustar algo, é só me dizer.`],
-         ["Última mensagem",`${oi} Não quero insistir, então esta é minha última mensagem sobre a proposta. Se mais para frente fizer sentido, é só me chamar por aqui. Sucesso para a ${n}!`]],
+         ["Última mensagem",`${oi} Não quero insistir, então esta é minha última mensagem sobre a proposta. Se mais para frente fizer sentido, é só me chamar por aqui. Sucesso ${paraArt(n)}!`]],
    won:[["Agradecer e pedir indicação",`${oi} Obrigado pela confiança na TRUZAV! Se conhecer alguém que também precise de site, pode passar meu contato. Indicação é o que mais ajuda a gente.`]],
-   lost:[["Retomar contato",`${oi} Tudo bem? Falamos sobre o site da ${n} há um tempo. Se agora for um bom momento, posso atualizar a proposta para vocês.`]]};
+   lost:[["Retomar contato",`${oi} Tudo bem? Falamos sobre o site ${deArt(n)} há um tempo. Se agora for um bom momento, posso atualizar a proposta para vocês.`]]};
   return (M[it.status]||[]).filter(Boolean);
 }
 let msgSel={};
