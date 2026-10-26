@@ -574,9 +574,12 @@ function drawer(){
   const s3=el("section","ds");s3.append(el("h3",0,"Dados do negócio"));
   const f=(lab,key,sel,type)=>{const w=el("div","field"),l=el("label",0,lab),i=sel?el("select","t"):el("input","t");l.htmlFor="f-"+key;i.id="f-"+key;
     if(sel){sel.forEach(([v,t])=>{const o=el("option",0,t);o.value=v;o.selected=v===it[key];i.append(o)})}else{i.value=it[key]??"";if(type){i.type=type;i.min="0";i.step="0.01";i.inputMode="decimal"}}
-    i.onchange=()=>key==="status"?move(it.id,i.value):update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});w.append(l,i);s3.append(w)};
+    i.onchange=()=>{if(key==="status")return move(it.id,i.value);update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});
+      if(key==="phone"||key==="name"){const dc=dupCheck(it,it.id);if(dc)toast(dupMsg(dc).replace(" Se for outro negócio, adicione mesmo assim.",""))}};w.append(l,i);s3.append(w)};
   f("Nome","name");f("Categoria","cat");f("Telefone","phone");f("Pessoa de contato","contato");f("Valor da proposta (R$)","valor",null,"number");
-  f("Nota no Google (0 a 5)","nota",null,"number");f("Número de avaliações no Google","aval",null,"number");f("E-mail","email");f("Cidade","city");
+  f("Nota no Google (0 a 5)","nota",null,"number");f("Número de avaliações no Google","aval",null,"number");f("Site","site");f("E-mail","email");f("Cidade","city");
+  s3.insertBefore(fichaBox(r=>{const p={};if(r.phone&&!it.phone)p.phone=r.phone;if(r.nota)p.nota=r.nota;if(r.aval)p.aval=r.aval;if(r.site){p.site=r.site;if(r.tipo)p.tipo=r.tipo}if(r.email)p.email=r.email;
+    update(it.id,p,true);drawer();toast(Object.keys(p).length?"Dados da ficha aplicados. Confira em Dados do negócio.":"Nada novo encontrado no texto.")},"Completar com o texto da ficha do Google Maps"),s3.children[1]);
   const tl=TIPOS.includes(it.tipo)||!it.tipo?TIPOS:[it.tipo,...TIPOS];f("Situação do site","tipo",tl.map(t=>[t,t]));f("Etapa","status",ST);
   const la=el("div","acts"),pb=el("button","b",it.lat==null?"Marcar no mapa":"Mudar local no mapa");pb.onclick=()=>startPlacing(it);
   const del=el("button","b ghost danger",confirmDel===true?"Clique de novo para remover":"Remover da lista");
@@ -591,7 +594,9 @@ function newForm(){
   const w=el("div","field"),lb=el("label",0,"Situação do site"),s=el("select","t");lb.htmlFor="n-tipo";s.id="n-tipo";TIPOS.forEach(t=>s.append(el("option",0,t)));w.append(lb,s);fm.append(w);
   const sb=el("button","b main","Adicionar e marcar no mapa");sb.type="submit";sb.style.width="100%";fm.append(sb);
   fm.onsubmit=e=>{e.preventDefault();const it={id:"n"+Date.now(),name:vals.name.value.trim(),cat:vals.cat.value.trim(),phone:vals.phone.value.trim(),tipo:s.value,notes:"",status:"new",order:Date.now(),lat:null,lng:null};
-    if(!it.name)return;it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
+    if(!it.name)return;const dc=dupCheck(it);
+    if(dc&&(dc.hard||fm.dataset.ok!==dc.it.id)){fm.dataset.ok=dc.hard?"":dc.it.id;toast(dupMsg(dc));if(!dc.hard)sb.textContent="Adicionar mesmo assim";return}
+    it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
   d.append(fm);vals.name.focus();
 }
 /* ===== Propostas ===== */
@@ -785,7 +790,44 @@ async function resolveMaps(txt){
   if(!p.name&&p.lat==null)throw new Error("Não consegui ler esse link. Abra o negócio no Google Maps (não a lista de resultados) e copie o link dele.");
   return {...p,link};
 }
-const dup=name=>data.items.find(i=>norm(i.name)===norm(name));
+/* Texto copiado da ficha do Google Maps: telefone, nota, avaliações, site e e-mail */
+const digits=p=>{let d=(p||"").replace(/\D/g,"");if(/^55\d{10,11}$/.test(d))d=d.slice(2);return d.replace(/^0(?=\d{10,11}$)/,"")};
+const fmtPhone=d=>d.length===11?`+55 ${d.slice(0,2)} ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`+55 ${d.slice(0,2)} ${d.slice(2,6)}-${d.slice(6)}`:d;
+const SITE_LIVRE=/(wixsite|wix\.com|business\.site|negocio\.site|sites\.google|linktr\.ee|webnode|godaddysites|ueniweb|carrd\.co|blogspot|wordpress\.com|bio\.link|beacons\.ai|lojaintegrada|my\.canva)/;
+function parseFicha(txt){
+  const t=(txt||"").replace(/ /g," "),L=t.split(/\n/).map(s=>s.trim()).filter(Boolean),r={};let m;
+  if(m=t.match(/(?:\+?55[\s-]?)?\(?\b([1-9]\d)\)?[\s-]?(9?\d{4})[\s-]?(\d{4})\b/))r.phone=fmtPhone(m[1]+m[2]+m[3]);
+  else if(m=t.match(/\b0800[\s-]?\d{3}[\s-]?\d{4}\b/))r.phone=m[0];
+  if(m=t.match(/(?:^|\s)([1-5][,.]\d)\s*[★☆]*\s*\(([\d.]+)\)/)||t.match(/^([1-5][,.]\d)\s*$/m)){r.nota=+m[1].replace(",",".");if(m[2])r.aval=+m[2].replace(/\./g,"")}
+  if(!r.aval&&(m=t.match(/([\d.]+)\s+(?:avalia[çc][õo]es|coment[áa]rios|reviews)/i)))r.aval=+m[1].replace(/\./g,"");
+  if(r.nota&&!r.aval&&(m=t.match(/^\(([\d.]+)\)$/m)))r.aval=+m[1].replace(/\./g,"");
+  if(m=t.match(/[\w.+-]+@[\w-]+\.[\w.]+[a-z]/i))r.email=m[0];
+  const dom=L.map(s=>s.match(/^(?:https?:\/\/)?(?:www\.)?((?:[a-z0-9-]+\.)+[a-z]{2,})(\/\S*)?$/i)).filter(Boolean)
+   .map(x=>x[1].toLowerCase()+(x[2]||"")).filter(d=>!/(^|\.)(google\.|goo\.gl|gstatic)/.test(d));
+  if(dom.length){r.site=dom[0];r.tipo=/instagram\.com/.test(r.site)?"Só Instagram":/facebook\.com|fb\.com/.test(r.site)?"Só Facebook":/wa\.me|whatsapp\.com/.test(r.site)?"Só link do WhatsApp":SITE_LIVRE.test(r.site)?"Site de construtor gratuito":"Site fraco ou desatualizado";r.proprio=r.tipo==="Site fraco ou desatualizado"}
+  else r.tipo="Sem site";
+  return r}
+function fichaResumo(r){const a=[];
+  a.push(r.phone?"telefone "+r.phone:"telefone não encontrado");
+  a.push(r.nota?`nota ${String(r.nota).replace(".",",")}`:"nota não encontrada");
+  a.push(r.aval?`${r.aval} avaliações`:"avaliações não encontradas");
+  a.push(r.site?(r.proprio?`tem site próprio: ${r.site} (marcado como Site fraco ou desatualizado; abra o site e confira se ainda vale como lead)`:`${r.site} (${r.tipo.toLowerCase()})`):"nenhum site no texto (marcado como Sem site)");
+  if(r.email)a.push("e-mail "+r.email);
+  return "Encontrado: "+a.join("; ")+". Confira antes de salvar."}
+function fichaBox(onRead,lab){
+  const w=el("div","field"),l=el("label",0,lab||"Texto da ficha do Google Maps (opcional)"),ta=el("textarea","t"),b=el("button","b","Ler texto"),out=el("p","muted");
+  ta.id="fx-"+uid();l.htmlFor=ta.id;ta.style.minHeight="80px";ta.placeholder="No Google Maps, selecione o painel do negócio, copie e cole aqui";b.type="button";b.style.marginTop="6px";out.hidden=true;
+  b.onclick=()=>{if(!ta.value.trim()){ta.focus();return}const r=parseFicha(ta.value);onRead(r);out.textContent=fichaResumo(r);out.hidden=false};
+  w.append(l,ta,b,out);return w}
+/* Repetidos: mesmo nome ou telefone bloqueia; nome parecido ou mesmo local (até 30 m) pede confirmação */
+const nkey=s=>norm(s).replace(/[^a-z0-9]+/g," ").trim();
+const near=(a,b)=>a.lat!=null&&b.lat!=null&&Math.hypot((a.lat-b.lat)*111e3,(a.lng-b.lng)*111e3*Math.cos(a.lat*Math.PI/180))<30;
+function dupCheck(c,skip){
+  const n=nkey(c.name),d=digits(c.phone),I=data.items.filter(i=>i.id!==skip);
+  for(const i of I){if(n&&nkey(i.name)===n)return{it:i,hard:true,why:"mesmo nome"};if(d.length>=10&&digits(i.phone)===d)return{it:i,hard:true,why:"mesmo telefone"}}
+  for(const i of I){const n2=nkey(i.name);if(n.length>=6&&n2.length>=6&&(n2.includes(n)||n.includes(n2)))return{it:i,why:"nome parecido"};if(near(c,i))return{it:i,why:"mesmo local no mapa"}}
+  return null}
+const dupMsg=x=>x.hard?`${x.it.name} já está no funil (${x.why}), em “${LBL[x.it.status]}”.`:`Atenção: ${x.it.name} tem ${x.why} e está em “${LBL[x.it.status]}”. Se for outro negócio, adicione mesmo assim.`;
 function findForm(){
   openId=null;const d=$("#drawer");d.replaceChildren();showDrawer();d.setAttribute("aria-label","Buscar negócios");
   const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;
@@ -814,10 +856,12 @@ function findForm(){
     try{gstate.pend=await resolveMaps(v)}catch(er){gstate.err=er.message;gstate.lastLink=v}gstate.busy=false;findForm()};
   if(gstate.err){s2.append(el("p","warn",gstate.err));li.value=gstate.lastLink||""}
   if(gstate.pend){
-    const P=gstate.pend,ex=dup(P.name||"");
-    if(ex){const w=el("p","warn",`${ex.name} já está no funil, em “${LBL[ex.status]}”.`);const ob2=el("button","b",`Abrir ${ex.name}`);ob2.style.marginTop="8px";ob2.onclick=()=>{gstate.pend=null;openItem(ex.id)};s2.append(w,ob2)}
+    const P=gstate.pend,dx=dupCheck({name:P.name||"",lat:P.lat,lng:P.lng});
+    const openEx=x=>{const ob2=el("button","b",`Abrir ${x.it.name}`);ob2.type="button";ob2.style.marginTop="8px";ob2.onclick=()=>{gstate.pend=null;openItem(x.it.id)};return ob2};
+    if(dx&&dx.hard)s2.append(el("p","warn",dupMsg(dx)),openEx(dx));
     else{
-      const fm=el("form");fm.style.marginTop="14px";const V={};
+      if(dx)s2.append(el("p","warn",dupMsg(dx)),openEx(dx));
+      const fm=el("form");fm.style.marginTop="14px";const V={},ex={};
       const fld=(lab,k,node)=>{const w=el("div","field"),l=el("label",0,lab);node.id="g-"+k;l.htmlFor=node.id;w.append(l,node);fm.append(w);V[k]=node;return node};
       const n=fld("Nome","name",el("input","t"));n.value=P.name;n.required=true;
       const c=fld("Categoria","cat",el("input","t"));c.value=(TERMOS.find(t=>t[0]===gstate.termo)||[])[1]||"";
@@ -826,10 +870,17 @@ function findForm(){
       const av=fld("Número de avaliações (opcional)","aval",el("input","t"));av.type="number";av.min="0";av.step="1";av.inputMode="numeric";
       const tp=fld("Situação do site","tipo",el("select","t"));TIPOS.forEach(t=>tp.append(el("option",0,t)));
       const pr=fld("Comentário de cliente (opcional)","prova",el("textarea","t"));pr.placeholder="Cole aqui uma avaliação que mostre a falta de site ou de contato";pr.style.minHeight="80px";
+      fm.prepend(fichaBox(r=>{if(r.phone)ph.value=r.phone;if(r.nota)nt.value=r.nota;if(r.aval)av.value=r.aval;if(r.tipo)tp.value=r.tipo;ex.site=r.site||"";ex.email=r.email||""}));
       fm.append(el("p","muted",P.lat!=null?"Local no mapa: encontrado pelo link.":"Local no mapa: não veio no link. Você pode marcar depois."));
+      const dw=el("p","warn");dw.hidden=true;fm.append(dw);
       const ab=el("button","b main","Adicionar ao funil");ab.type="submit";ab.style.cssText="width:100%;margin-top:10px";fm.append(ab);
-      fm.onsubmit=e=>{e.preventDefault();const nm=n.value.trim();if(!nm)return;if(dup(nm)){toast(`${nm} já está no funil.`);return}
-        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:ph.value.trim(),tipo:tp.value,nota:+nt.value||0,aval:+av.value||0,lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
+      let ok2=null;[n,ph].forEach(x=>x.addEventListener("input",()=>{ok2=null;dw.hidden=true;ab.textContent="Adicionar ao funil"}));
+      fm.onsubmit=e=>{e.preventDefault();const nm=n.value.trim();if(!nm)return;
+        const dc=dupCheck({name:nm,phone:ph.value,lat:P.lat,lng:P.lng});
+        if(dc&&dc.hard){dw.textContent=dupMsg(dc);dw.hidden=false;return}
+        if(dc&&ok2!==dc.it.id){ok2=dc.it.id;dw.textContent=dupMsg(dc);dw.hidden=false;ab.textContent="Adicionar mesmo assim";return}
+        const d0=digits(ph.value);
+        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:d0.length>=10&&!/^0800/.test(ph.value.trim())?fmtPhone(d0):ph.value.trim(),tipo:tp.value,nota:+nt.value||0,aval:+av.value||0,site:ex.site||"",email:ex.email||"",lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
           provas:pr.value.trim()?[{id:uid(),txt:pr.value.trim(),fonte:FONTES[0],d:now()}]:[],hist:[{id:uid(),d:now(),t:"add",txt:"Google Maps"}]};
         data.items.push(it);persist();gstate.pend=null;gstate.err="";renderAll();findForm();toast(`${nm} foi adicionado em “A contatar”.`)};
       s2.append(fm);
@@ -925,8 +976,8 @@ function listView(){
 }
 function csv(){
   const cel=v=>{let s=String(v??"");if(/^[=+\-@\t\r]/.test(s))s="'"+s;return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
-  const H=["Negócio","Categoria","Etapa","Potencial","Telefone","WhatsApp","Situação do site","Nota no Google","Avaliações","E-mail","Cidade","Pessoa de contato","Valor da proposta","Anotações","Link do Google Maps"];
-  const L=lrows().map(it=>[it.name,it.cat,LBL[it.status],pot(it).n,it.phone,wa(it.phone)?"sim":"não",it.tipo,it.nota||"",it.aval||"",it.email,it.city,it.contato,it.valor||"",it.notes,it.maps]);
+  const H=["Negócio","Categoria","Etapa","Potencial","Telefone","WhatsApp","Situação do site","Nota no Google","Avaliações","Site","E-mail","Cidade","Pessoa de contato","Valor da proposta","Anotações","Link do Google Maps"];
+  const L=lrows().map(it=>[it.name,it.cat,LBL[it.status],pot(it).n,it.phone,wa(it.phone)?"sim":"não",it.tipo,it.nota||"",it.aval||"",it.site,it.email,it.city,it.contato,it.valor||"",it.notes,it.maps]);
   const b=new Blob(["﻿"+[H,...L].map(r=>r.map(cel).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");
   a.href=URL.createObjectURL(b);a.download=`truzav-lista-${today()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast(`CSV exportado com ${L.length} negócios.`);
 }
