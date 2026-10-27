@@ -263,52 +263,9 @@ body.pmopen{overflow:hidden}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chips .muted{margin:0}
 
-/* lista com potencial */
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.listv{flex:1;overflow-y:auto;min-width:0}
-.lstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.lstat{background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:10px 14px}
-.lstat b{display:block;font:600 22px Sora,Inter,sans-serif}.lstat span{font-size:13px;color:var(--soft)}
-.lrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;align-items:center}
-.lrow .chip{min-height:40px;display:inline-flex;align-items:center;gap:6px}.lrow .chip b{font-weight:600;color:var(--soft)}
-.lrow .chip[aria-pressed="true"] b{color:var(--laranja)}
-.lrow .sp{flex:1}
-.ltab{margin-top:12px;background:var(--surf);border:1px solid var(--line);border-radius:4px;overflow-x:auto}
-.ltab table{width:100%;border-collapse:collapse;min-width:960px;font-size:14px}
-.ltab th{text-align:left;border-bottom:1px solid var(--line);padding:0;white-space:nowrap}
-.ltab th button{all:unset;cursor:pointer;display:block;padding:11px 12px;color:var(--soft);font-weight:500;font-size:13px}
-.ltab th button:hover,.ltab th[aria-sort] button{color:var(--ink)}
-.ltab th button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
-.ltab th[aria-sort="descending"] button::after{content:" ↓"}.ltab th[aria-sort="ascending"] button::after{content:" ↑"}
-.ltab td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
-.ltab tr:last-child td{border-bottom:0}
-.ltab .nm{all:unset;cursor:pointer;font:600 14px Sora,Inter,sans-serif;white-space:normal}.ltab .nm:hover{text-decoration:underline}
-.ltab .nm:focus-visible{outline:2px solid var(--focus)}
-.ltab td small{display:block;color:var(--soft);font-size:12px}
-.ltab .sel{height:38px;font-size:14px}
-.ltab .tag{margin-top:0}
-.pot{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);font:600 14px Sora,Inter,sans-serif;cursor:help}
-.pot.hi{background:var(--laranja);border-color:var(--laranja);color:var(--grafite)}.pot.md{border-color:var(--ink)}
-.ph{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:1px 6px;margin-left:6px;background:var(--surf2);color:var(--soft)}
-.ph.cel{background:var(--okbg);color:var(--ok)}
-.mini{height:38px;padding:0 12px;font-size:13px}
-.lfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--soft)}
-.card{position:relative}.card .pot{position:absolute;right:8px;top:8px;width:30px;height:30px;font-size:12px;border-width:1.5px}
-.card.haspot .cm{padding-right:34px}.card.haspot .act{margin-top:24px}
-.potd{margin-top:14px;display:flex;gap:12px;align-items:flex-start}.potd ul{margin:0;padding:0;list-style:none;font-size:13px;color:var(--soft)}
-@media(max-width:900px){.lstats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){
- .ltab{background:none;border:0;overflow:visible}
- .ltab table{min-width:0}.ltab thead{display:none}.ltab table,.ltab tbody{display:block}
- .ltab tr{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:12px;margin-bottom:8px}
- .ltab td{display:block;padding:0;border:0;white-space:normal;grid-column:2;min-width:0}
- .ltab td.c-pot{grid-column:1;grid-row:1/span 4}
- .ltab td.c-cat,.ltab td.c-nota{display:none}
- .ltab td.c-act{display:flex;gap:8px;flex-wrap:wrap}
- .ltab .mini,.ltab .sel{height:44px}
- .ltab .nm{min-height:44px;display:flex;align-items:center}
- .lrow .chip{min-height:44px}
-}
+.pvmain{display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--surf2)}
+.pvframe{width:100%;max-width:1100px;flex:1;min-height:600px;border:1px solid var(--line);border-radius:4px;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.pvframe.m{width:390px;max-width:100%;border-radius:22px;border:8px solid #111}
 </style>
 </head>
 <body>
@@ -316,7 +273,6 @@ body.pmopen{overflow:hidden}
 <nav class="nav" aria-label="Navegação principal">
   <a class="brand" href="./" aria-label="TRUZAV"><svg viewBox="0 0 585 100" role="img" aria-label="TRUZAV"><use href="#lg"/></svg></a>
   <button class="tab" data-v="board" aria-current="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Funil</span></button>
-  <button class="tab" data-v="list" aria-current="false"><svg class="i" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Lista</span></button>
   <button class="tab" data-v="map" aria-current="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Mapa</span></button>
   <button class="tab" data-v="hist" aria-current="false"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span>Histórico</span></button>
   <div class="sp"></div>
@@ -341,7 +297,6 @@ body.pmopen{overflow:hidden}
 </div>
 <main>
   <section class="board" id="board" aria-label="Quadro de etapas"></section>
-  <section class="listv" id="listv" hidden aria-label="Lista com potencial"></section>
   <section class="histv" id="histv" hidden aria-label="Histórico de atividades"></section>
   <section class="mapv" id="mapv" hidden><div id="map"></div><aside class="side" id="side" aria-label="Lista de negócios"></aside></section>
 </main>
@@ -422,19 +377,6 @@ function update(id,p,quiet){Object.assign(byId(id),p);persist();if(!quiet)render
 function move(id,s){const it=byId(id);if(!it||it.status===s)return;const p={status:s,changed:today()};if(s!=="new"&&!it.contacted)p.contacted=today();addLog(it,{t:"status",from:it.status,to:s});update(id,p);toast(`${it.name} agora está em “${LBL[s]}”.`)}
 function wa(p){const d=(p||"").replace(/\D/g,"");const l=d.replace(/^55/,"");return l.length===11&&l[2]==="9"?"https://wa.me/55"+l:null}
 const waiting=it=>it.status==="previa"&&lastAct(it)&&days(lastAct(it))>=2;
-/* Potencial de 0 a 100 para quem vende site: presença fraca vale mais. Ajuste os pesos aqui. */
-const PESO={site:35,mov:25,fone:20,prova:10,nota:10};
-const SITE_F={"Sem site":1,"Só link do WhatsApp":.85,"Só Instagram":.8,"Só Facebook":.8,"Site de construtor gratuito":.55,"Site fraco ou desatualizado":.45,"Outro":.3};
-function pot(it){
-  const av=+it.aval||0,nt=+it.nota||0;
-  const p=[["Situação do site",Math.round(PESO.site*(SITE_F[it.tipo]??.3)),PESO.site],
-   ["Movimento (avaliações)",av?Math.min(PESO.mov,Math.round(PESO.mov*Math.log10(1+av)/Math.log10(501))):0,PESO.mov,!av],
-   ["Telefone",wa(it.phone)?PESO.fone:it.phone?Math.round(PESO.fone*.6):0,PESO.fone],
-   ["Comentário de cliente",(it.provas||[]).length?PESO.prova:0,PESO.prova],
-   ["Nota 4 ou mais no Google",nt>=4?PESO.nota:0,PESO.nota,!nt]];
-  return {n:p.reduce((s,x)=>s+x[1],0),p}}
-const potTip=o=>o.p.map(([l,v,m,u])=>`${l}: ${v} de ${m}${u?" (sem dado)":""}`).join("\n");
-function potEl(it){const o=pot(it),s=el("span","pot num"+(o.n>=70?" hi":o.n>=45?" md":""),o.n);s.title=potTip(o);s.setAttribute("aria-label",`Potencial ${o.n} de 100`);return s}
 function tag(t){const s=el("span","tag",t);s.style.setProperty("--t",`var(${TCOL(t)})`);return s}
 function actBtn(it){
   const s=it.status;
@@ -468,7 +410,7 @@ function board(){
       const m=el("div","cm");m.append(el("strong",0,it.name),el("small",0,it.cat||""));
       if(+it.valor)m.append(el("span","val num",money(+it.valor)));
       if(it.tipo&&(s==="new"||!+it.valor))m.append(tag(it.tipo));
-      c.append(m,actBtn(it));if(s!=="won"&&s!=="lost"){c.classList.add("haspot");c.append(potEl(it))}
+      c.append(m,actBtn(it));
       c.onclick=()=>openItem(it.id);c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openItem(it.id)}};
       c.ondragstart=e=>{e.dataTransfer.setData("text/plain",it.id);e.dataTransfer.effectAllowed="move";c.classList.add("drag")};c.ondragend=()=>c.classList.remove("drag");
       body.append(c);
@@ -524,7 +466,6 @@ function drawer(){
   dh.append(x,el("h2",0,it.name),el("p","muted",it.cat||""));
   const stg=el("span","stage");stg.style.setProperty("--c",`var(--s-${it.status})`);stg.append(el("span","dot"),document.createTextNode(LBL[it.status]));dh.append(stg);
   if(it.tipo)dh.append(tag(it.tipo));
-  {const o=pot(it),pd=el("div","potd"),ul=el("ul");o.p.forEach(([l,v,m,u])=>ul.append(el("li","num",`${l}: ${v} de ${m}${u?" (sem dado)":""}`)));pd.append(potEl(it),ul);dh.append(pd)}
   if(it.maps){const ml=el("a","maplink","Ver no Google Maps");ml.href=it.maps;ml.target="_blank";ml.rel="noopener";dh.append(ml)}
   if(waiting(it))dh.append(el("p","warn",`Sem resposta há ${days(lastAct(it))} dias. Mande um lembrete curto.`));
   else if(it.contacted)dh.append(el("p","muted",`Primeiro contato em ${br(it.contacted)}.`));
@@ -544,6 +485,8 @@ function drawer(){
   ptx.placeholder="Cole o comentário, por exemplo uma avaliação do Google";ptx.setAttribute("aria-label","Comentário de cliente");FONTES.forEach(f=>pfo.append(el("option",0,f)));pfo.setAttribute("aria-label","Onde estava o comentário");pad.type="submit";
   pf2.append(ptx,pfo,pad);pf2.onsubmit=e=>{e.preventDefault();const t=ptx.value.trim();if(!t)return;it.provas=[...(it.provas||[]),{id:uid(),txt:t,fonte:pfo.value,d:now()}];document.activeElement.blur();update(it.id,{});toast("Prova adicionada. Ela já entra na proposta.")};
   sv2.append(pf2);d.append(sv2);
+  const spv=el("section","ds");spv.append(el("h3",0,"Prévia do site"),el("p","muted","Um site de demonstração com o nome, o ramo e a localização deste negócio, para mandar junto da apresentação."));
+  const pvb=el("button","b",it.prev?"Abrir prévia":"Montar prévia do site");pvb.style.marginTop="10px";pvb.onclick=()=>openPreview(it.id);spv.append(pvb);d.append(spv);
   const sp=el("section","ds");sp.append(el("h3",0,"Proposta comercial"));
   const lp=(it.hist||[]).filter(e=>e.t==="proposta").pop();
   sp.append(el("p","muted",lp?`Última enviada em ${br(dayOf(lp.d))}: ${lp.tipo}, ${money(lp.valor)}. Ramo: ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n}.`:`Texto pronto para o ramo ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n.toLowerCase()}, ajustável antes de enviar.`));
@@ -574,12 +517,8 @@ function drawer(){
   const s3=el("section","ds");s3.append(el("h3",0,"Dados do negócio"));
   const f=(lab,key,sel,type)=>{const w=el("div","field"),l=el("label",0,lab),i=sel?el("select","t"):el("input","t");l.htmlFor="f-"+key;i.id="f-"+key;
     if(sel){sel.forEach(([v,t])=>{const o=el("option",0,t);o.value=v;o.selected=v===it[key];i.append(o)})}else{i.value=it[key]??"";if(type){i.type=type;i.min="0";i.step="0.01";i.inputMode="decimal"}}
-    i.onchange=()=>{if(key==="status")return move(it.id,i.value);update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});
-      if(key==="phone"||key==="name"){const dc=dupCheck(it,it.id);if(dc)toast(dupMsg(dc).replace(" Se for outro negócio, adicione mesmo assim.",""))}};w.append(l,i);s3.append(w)};
+    i.onchange=()=>key==="status"?move(it.id,i.value):update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});w.append(l,i);s3.append(w)};
   f("Nome","name");f("Categoria","cat");f("Telefone","phone");f("Pessoa de contato","contato");f("Valor da proposta (R$)","valor",null,"number");
-  f("Nota no Google (0 a 5)","nota",null,"number");f("Número de avaliações no Google","aval",null,"number");f("Site","site");f("E-mail","email");f("Cidade","city");
-  s3.insertBefore(fichaBox(r=>{const p={};if(r.phone&&!it.phone)p.phone=r.phone;if(r.nota)p.nota=r.nota;if(r.aval)p.aval=r.aval;if(r.site){p.site=r.site;if(r.tipo)p.tipo=r.tipo}if(r.email)p.email=r.email;
-    update(it.id,p,true);drawer();toast(Object.keys(p).length?"Dados da ficha aplicados. Confira em Dados do negócio.":"Nada novo encontrado no texto.")},"Completar com o texto da ficha do Google Maps"),s3.children[1]);
   const tl=TIPOS.includes(it.tipo)||!it.tipo?TIPOS:[it.tipo,...TIPOS];f("Situação do site","tipo",tl.map(t=>[t,t]));f("Etapa","status",ST);
   const la=el("div","acts"),pb=el("button","b",it.lat==null?"Marcar no mapa":"Mudar local no mapa");pb.onclick=()=>startPlacing(it);
   const del=el("button","b ghost danger",confirmDel===true?"Clique de novo para remover":"Remover da lista");
@@ -594,9 +533,7 @@ function newForm(){
   const w=el("div","field"),lb=el("label",0,"Situação do site"),s=el("select","t");lb.htmlFor="n-tipo";s.id="n-tipo";TIPOS.forEach(t=>s.append(el("option",0,t)));w.append(lb,s);fm.append(w);
   const sb=el("button","b main","Adicionar e marcar no mapa");sb.type="submit";sb.style.width="100%";fm.append(sb);
   fm.onsubmit=e=>{e.preventDefault();const it={id:"n"+Date.now(),name:vals.name.value.trim(),cat:vals.cat.value.trim(),phone:vals.phone.value.trim(),tipo:s.value,notes:"",status:"new",order:Date.now(),lat:null,lng:null};
-    if(!it.name)return;const dc=dupCheck(it);
-    if(dc&&(dc.hard||fm.dataset.ok!==dc.it.id)){fm.dataset.ok=dc.hard?"":dc.it.id;toast(dupMsg(dc));if(!dc.hard)sb.textContent="Adicionar mesmo assim";return}
-    it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
+    if(!it.name)return;it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
   d.append(fm);vals.name.focus();
 }
 /* ===== Propostas ===== */
@@ -790,44 +727,7 @@ async function resolveMaps(txt){
   if(!p.name&&p.lat==null)throw new Error("Não consegui ler esse link. Abra o negócio no Google Maps (não a lista de resultados) e copie o link dele.");
   return {...p,link};
 }
-/* Texto copiado da ficha do Google Maps: telefone, nota, avaliações, site e e-mail */
-const digits=p=>{let d=(p||"").replace(/\D/g,"");if(/^55\d{10,11}$/.test(d))d=d.slice(2);return d.replace(/^0(?=\d{10,11}$)/,"")};
-const fmtPhone=d=>d.length===11?`+55 ${d.slice(0,2)} ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`+55 ${d.slice(0,2)} ${d.slice(2,6)}-${d.slice(6)}`:d;
-const SITE_LIVRE=/(wixsite|wix\.com|business\.site|negocio\.site|sites\.google|linktr\.ee|webnode|godaddysites|ueniweb|carrd\.co|blogspot|wordpress\.com|bio\.link|beacons\.ai|lojaintegrada|my\.canva)/;
-function parseFicha(txt){
-  const t=(txt||"").replace(/ /g," "),L=t.split(/\n/).map(s=>s.trim()).filter(Boolean),r={};let m;
-  if(m=t.match(/(?:\+?55[\s-]?)?\(?\b([1-9]\d)\)?[\s-]?(9?\d{4})[\s-]?(\d{4})\b/))r.phone=fmtPhone(m[1]+m[2]+m[3]);
-  else if(m=t.match(/\b0800[\s-]?\d{3}[\s-]?\d{4}\b/))r.phone=m[0];
-  if(m=t.match(/(?:^|\s)([1-5][,.]\d)\s*[★☆]*\s*\(([\d.]+)\)/)||t.match(/^([1-5][,.]\d)\s*$/m)){r.nota=+m[1].replace(",",".");if(m[2])r.aval=+m[2].replace(/\./g,"")}
-  if(!r.aval&&(m=t.match(/([\d.]+)\s+(?:avalia[çc][õo]es|coment[áa]rios|reviews)/i)))r.aval=+m[1].replace(/\./g,"");
-  if(r.nota&&!r.aval&&(m=t.match(/^\(([\d.]+)\)$/m)))r.aval=+m[1].replace(/\./g,"");
-  if(m=t.match(/[\w.+-]+@[\w-]+\.[\w.]+[a-z]/i))r.email=m[0];
-  const dom=L.map(s=>s.match(/^(?:https?:\/\/)?(?:www\.)?((?:[a-z0-9-]+\.)+[a-z]{2,})(\/\S*)?$/i)).filter(Boolean)
-   .map(x=>x[1].toLowerCase()+(x[2]||"")).filter(d=>!/(^|\.)(google\.|goo\.gl|gstatic)/.test(d));
-  if(dom.length){r.site=dom[0];r.tipo=/instagram\.com/.test(r.site)?"Só Instagram":/facebook\.com|fb\.com/.test(r.site)?"Só Facebook":/wa\.me|whatsapp\.com/.test(r.site)?"Só link do WhatsApp":SITE_LIVRE.test(r.site)?"Site de construtor gratuito":"Site fraco ou desatualizado";r.proprio=r.tipo==="Site fraco ou desatualizado"}
-  else r.tipo="Sem site";
-  return r}
-function fichaResumo(r){const a=[];
-  a.push(r.phone?"telefone "+r.phone:"telefone não encontrado");
-  a.push(r.nota?`nota ${String(r.nota).replace(".",",")}`:"nota não encontrada");
-  a.push(r.aval?`${r.aval} avaliações`:"avaliações não encontradas");
-  a.push(r.site?(r.proprio?`tem site próprio: ${r.site} (marcado como Site fraco ou desatualizado; abra o site e confira se ainda vale como lead)`:`${r.site} (${r.tipo.toLowerCase()})`):"nenhum site no texto (marcado como Sem site)");
-  if(r.email)a.push("e-mail "+r.email);
-  return "Encontrado: "+a.join("; ")+". Confira antes de salvar."}
-function fichaBox(onRead,lab){
-  const w=el("div","field"),l=el("label",0,lab||"Texto da ficha do Google Maps (opcional)"),ta=el("textarea","t"),b=el("button","b","Ler texto"),out=el("p","muted");
-  ta.id="fx-"+uid();l.htmlFor=ta.id;ta.style.minHeight="80px";ta.placeholder="No Google Maps, selecione o painel do negócio, copie e cole aqui";b.type="button";b.style.marginTop="6px";out.hidden=true;
-  b.onclick=()=>{if(!ta.value.trim()){ta.focus();return}const r=parseFicha(ta.value);onRead(r);out.textContent=fichaResumo(r);out.hidden=false};
-  w.append(l,ta,b,out);return w}
-/* Repetidos: mesmo nome ou telefone bloqueia; nome parecido ou mesmo local (até 30 m) pede confirmação */
-const nkey=s=>norm(s).replace(/[^a-z0-9]+/g," ").trim();
-const near=(a,b)=>a.lat!=null&&b.lat!=null&&Math.hypot((a.lat-b.lat)*111e3,(a.lng-b.lng)*111e3*Math.cos(a.lat*Math.PI/180))<30;
-function dupCheck(c,skip){
-  const n=nkey(c.name),d=digits(c.phone),I=data.items.filter(i=>i.id!==skip);
-  for(const i of I){if(n&&nkey(i.name)===n)return{it:i,hard:true,why:"mesmo nome"};if(d.length>=10&&digits(i.phone)===d)return{it:i,hard:true,why:"mesmo telefone"}}
-  for(const i of I){const n2=nkey(i.name);if(n.length>=6&&n2.length>=6&&(n2.includes(n)||n.includes(n2)))return{it:i,why:"nome parecido"};if(near(c,i))return{it:i,why:"mesmo local no mapa"}}
-  return null}
-const dupMsg=x=>x.hard?`${x.it.name} já está no funil (${x.why}), em “${LBL[x.it.status]}”.`:`Atenção: ${x.it.name} tem ${x.why} e está em “${LBL[x.it.status]}”. Se for outro negócio, adicione mesmo assim.`;
+const dup=name=>data.items.find(i=>norm(i.name)===norm(name));
 function findForm(){
   openId=null;const d=$("#drawer");d.replaceChildren();showDrawer();d.setAttribute("aria-label","Buscar negócios");
   const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;
@@ -856,37 +756,142 @@ function findForm(){
     try{gstate.pend=await resolveMaps(v)}catch(er){gstate.err=er.message;gstate.lastLink=v}gstate.busy=false;findForm()};
   if(gstate.err){s2.append(el("p","warn",gstate.err));li.value=gstate.lastLink||""}
   if(gstate.pend){
-    const P=gstate.pend,dx=dupCheck({name:P.name||"",lat:P.lat,lng:P.lng});
-    const openEx=x=>{const ob2=el("button","b",`Abrir ${x.it.name}`);ob2.type="button";ob2.style.marginTop="8px";ob2.onclick=()=>{gstate.pend=null;openItem(x.it.id)};return ob2};
-    if(dx&&dx.hard)s2.append(el("p","warn",dupMsg(dx)),openEx(dx));
+    const P=gstate.pend,ex=dup(P.name||"");
+    if(ex){const w=el("p","warn",`${ex.name} já está no funil, em “${LBL[ex.status]}”.`);const ob2=el("button","b",`Abrir ${ex.name}`);ob2.style.marginTop="8px";ob2.onclick=()=>{gstate.pend=null;openItem(ex.id)};s2.append(w,ob2)}
     else{
-      if(dx)s2.append(el("p","warn",dupMsg(dx)),openEx(dx));
-      const fm=el("form");fm.style.marginTop="14px";const V={},ex={};
+      const fm=el("form");fm.style.marginTop="14px";const V={};
       const fld=(lab,k,node)=>{const w=el("div","field"),l=el("label",0,lab);node.id="g-"+k;l.htmlFor=node.id;w.append(l,node);fm.append(w);V[k]=node;return node};
       const n=fld("Nome","name",el("input","t"));n.value=P.name;n.required=true;
       const c=fld("Categoria","cat",el("input","t"));c.value=(TERMOS.find(t=>t[0]===gstate.termo)||[])[1]||"";
       const ph=fld("Telefone (copie do Google Maps)","phone",el("input","t"));ph.inputMode="tel";
-      const nt=fld("Nota no Google (opcional)","nota",el("input","t"));nt.type="number";nt.min="0";nt.max="5";nt.step="0.1";nt.inputMode="decimal";
-      const av=fld("Número de avaliações (opcional)","aval",el("input","t"));av.type="number";av.min="0";av.step="1";av.inputMode="numeric";
       const tp=fld("Situação do site","tipo",el("select","t"));TIPOS.forEach(t=>tp.append(el("option",0,t)));
       const pr=fld("Comentário de cliente (opcional)","prova",el("textarea","t"));pr.placeholder="Cole aqui uma avaliação que mostre a falta de site ou de contato";pr.style.minHeight="80px";
-      fm.prepend(fichaBox(r=>{if(r.phone)ph.value=r.phone;if(r.nota)nt.value=r.nota;if(r.aval)av.value=r.aval;if(r.tipo)tp.value=r.tipo;ex.site=r.site||"";ex.email=r.email||""}));
       fm.append(el("p","muted",P.lat!=null?"Local no mapa: encontrado pelo link.":"Local no mapa: não veio no link. Você pode marcar depois."));
-      const dw=el("p","warn");dw.hidden=true;fm.append(dw);
       const ab=el("button","b main","Adicionar ao funil");ab.type="submit";ab.style.cssText="width:100%;margin-top:10px";fm.append(ab);
-      let ok2=null;[n,ph].forEach(x=>x.addEventListener("input",()=>{ok2=null;dw.hidden=true;ab.textContent="Adicionar ao funil"}));
-      fm.onsubmit=e=>{e.preventDefault();const nm=n.value.trim();if(!nm)return;
-        const dc=dupCheck({name:nm,phone:ph.value,lat:P.lat,lng:P.lng});
-        if(dc&&dc.hard){dw.textContent=dupMsg(dc);dw.hidden=false;return}
-        if(dc&&ok2!==dc.it.id){ok2=dc.it.id;dw.textContent=dupMsg(dc);dw.hidden=false;ab.textContent="Adicionar mesmo assim";return}
-        const d0=digits(ph.value);
-        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:d0.length>=10&&!/^0800/.test(ph.value.trim())?fmtPhone(d0):ph.value.trim(),tipo:tp.value,nota:+nt.value||0,aval:+av.value||0,site:ex.site||"",email:ex.email||"",lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
+      fm.onsubmit=e=>{e.preventDefault();const nm=n.value.trim();if(!nm)return;if(dup(nm)){toast(`${nm} já está no funil.`);return}
+        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:ph.value.trim(),tipo:tp.value,lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
           provas:pr.value.trim()?[{id:uid(),txt:pr.value.trim(),fonte:FONTES[0],d:now()}]:[],hist:[{id:uid(),d:now(),t:"add",txt:"Google Maps"}]};
         data.items.push(it);persist();gstate.pend=null;gstate.err="";renderAll();findForm();toast(`${nm} foi adicionado em “A contatar”.`)};
       s2.append(fm);
     }
   }
   d.append(s2);
+}
+
+/* ===== Prévia do site para o lead ===== */
+const PV_TAG={beleza:"Cuidado com o seu visual, com hora marcada e atendimento de verdade.",pet:"Cuidado e carinho para quem faz parte da família.",juridico:"Orientação clara para resolver o que é importante para você.",
+ construcao:"Do projeto à entrega, com acompanhamento em cada etapa.",alimentacao:"Feito com carinho, todos os dias. Passe aqui ou faça a sua encomenda.",fitness:"Treine com acompanhamento e encontre o ritmo certo para você.",
+ automotivo:"Cuide do seu carro com quem entende. Peça o seu orçamento pelo WhatsApp.",imobiliaria:"O imóvel certo para você, perto de tudo o que importa.",educacao:"Aprenda com quem acompanha a sua evolução de perto.",
+ saude:"Atendimento atencioso, perto de você. Agende pelo WhatsApp.",geral:"Conheça o nosso trabalho e fale com a gente pelo WhatsApp."};
+const PV_COR={beleza:"#7A3E48",pet:"#2E7D6B",juridico:"#1F3A5F",construcao:"#A44A17",alimentacao:"#8C3F14",fitness:"#B23A0E",automotivo:"#1F4E79",imobiliaria:"#234E52",educacao:"#3B5BA9",saude:"#0F766E",geral:"#334155"};
+function pvServ(it,seg){const t=norm(it.name+" "+it.cat);
+  if(seg==="beleza")return /barb/.test(t)?["Corte","Barba","Corte e barba","Sobrancelha"]:["Corte e escova","Coloração","Tratamentos","Manicure e pedicure"];
+  if(seg==="juridico")return /advoc|advog/.test(t)?["Consulta inicial","Direito de família","Direito do consumidor","Direito trabalhista"]:["Abertura de empresa","MEI","Imposto de renda","Rotina contábil"];
+  return ({pet:["Consultas","Vacinas","Exames","Banho e tosa"],construcao:["Projetos","Construção","Reformas","Acabamentos"],alimentacao:["Pães e salgados","Bolos e doces","Encomendas para festas","Café e lanches"],
+   fitness:["Musculação","Treino funcional","Aulas em grupo","Avaliação física"],automotivo:["Revisão completa","Mecânica geral","Freios e suspensão","Elétrica"],imobiliaria:["Venda","Aluguel","Avaliação do imóvel","Administração"],
+   educacao:["Cursos","Turmas regulares","Aulas particulares","Matrícula"],saude:["Consultas","Exames","Procedimentos","Retornos"],geral:["Serviço principal","Atendimento personalizado","Orçamento pelo WhatsApp","Acompanhamento"]})[seg]||[];
+}
+function pvOpts(it){const seg=segOf(it);return Object.assign({title:it.name,sub:PV_TAG[seg],svc:pvServ(it,seg).join("\n"),cor:PV_COR[seg],map:it.lat!=null},it.prev||{})}
+let pvPhotos={};
+function previewHTML(it,o,img){
+  const w=wa(it.phone),ctaHref=w||(it.phone?"tel:"+it.phone.replace(/[^\d+]/g,""):"#"),ctaTxt=w?"Chamar no WhatsApp":"Ligar agora";
+  const ini=it.name.replace(/[^\p{L}\p{N} ]/gu,"").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("");
+  const end=((it.notes||"").match(/Endereço: (.*)/)||[])[1]||"";const cid=it.city||"Viamão";
+  const ph=pvPhotos[it.id]||[];const svc=o.svc.split("\n").map(s=>s.trim()).filter(Boolean);
+  const mapsQ=it.lat!=null?`${it.lat},${it.lng}`:encodeURIComponent(it.name+" "+cid);
+  const map=o.map&&it.lat!=null?(img?`<div class="map mapimg"><span>📍 ${esc(end||cid)}</span></div>`:`<iframe class="map" loading="lazy" src="https://maps.google.com/maps?q=${it.lat},${it.lng}&z=16&output=embed" title="Mapa"></iframe>`):"";
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>:root{--a:${o.cor};--ink:#16181d;--soft:#5b6170;--bg:#fbfaf8;--line:#e7e4df}*{box-sizing:border-box}
+body{margin:0;font:16px/1.6 "Plus Jakarta Sans",system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;background:rgba(251,250,248,.94);border-bottom:1px solid var(--line);z-index:5}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;line-height:1.2}
+.mono{width:38px;height:38px;flex:none;border-radius:11px;background:var(--a);color:#fff;display:grid;place-items:center;font-size:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px;font-size:15px}
+.btn.ghost{background:transparent;color:inherit;border:1.5px solid currentColor}
+.hero{color:#fff;background:linear-gradient(135deg,var(--a),#111 140%);padding:64px 0 72px}
+.hero.ph{background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.7)),url(${ph[0]||""}) center/cover}
+.tag{display:inline-block;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);padding:5px 12px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:clamp(34px,7vw,56px);line-height:1.05;margin:0 0 14px;font-weight:800;letter-spacing:-.02em;max-width:16ch}
+.hero p{font-size:18px;max-width:36ch;margin:0 0 26px;opacity:.94}
+.hero .btn{background:#fff;color:var(--a)}.hero .row{display:flex;flex-wrap:wrap;gap:10px}.hero .btn.ghost{color:#fff;background:transparent}
+section{padding:56px 0}h2{font-size:28px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}.sub{color:var(--soft);margin:0 0 26px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}.card b{display:block;font-size:17px}.card span{color:var(--soft);font-size:14px}
+.dot{width:10px;height:10px;border-radius:3px;background:var(--a);display:block;margin-bottom:14px}
+.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
+.why{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.loc{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}
+.map{width:100%;aspect-ratio:4/3;border:0;border-radius:16px;background:#e9e6e0}
+.mapimg{display:grid;place-items:center;color:var(--soft);font-weight:600;background:#e6e2db}
+.mapimg span{background:#fff;padding:8px 14px;border-radius:999px}
+.cta{background:var(--ink);color:#fff;text-align:center}.cta .sub{color:#c9ccd3}
+footer{padding:22px 0 64px;font-size:13px;color:var(--soft);text-align:center}
+.demo{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#111;color:#F5F0E8;font-size:12px;padding:7px 14px;border-radius:999px;z-index:9;white-space:nowrap}
+.demo b{color:#F0642B}
+@media(max-width:720px){.loc{grid-template-columns:1fr}header .btn{display:none}section{padding:44px 0}}
+</style></head><body>
+<header><div class="wrap"><div class="brand"><span class="mono">${esc(ini)}</span>${esc(it.name)}</div><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></header>
+<div class="hero${ph[0]?" ph":""}"><div class="wrap"><span class="tag">${esc(it.cat||"")}${it.cat?" em ":""}${esc(cid)}</span><h1>${esc(o.title)}</h1><p>${esc(o.sub)}</p>
+<div class="row"><a class="btn" href="${ctaHref}">${ctaTxt}</a><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${mapsQ}">Como chegar</a></div></div></div>
+${svc.length?`<section><div class="wrap"><h2>Serviços</h2><p class="sub">O que você encontra aqui.</p><div class="grid">${svc.map(s=>`<div class="card"><span class="dot"></span><b>${esc(s)}</b><span>Fale com a gente para saber mais.</span></div>`).join("")}</div></div></section>`:""}
+${ph.length>1?`<section style="padding-top:0"><div class="wrap"><h2>Nosso trabalho</h2><p class="sub">Um pouco do dia a dia.</p><div class="gal">${ph.slice(1).map(u=>`<img src="${u}" alt="">`).join("")}</div></div></section>`:""}
+<section class="why"><div class="wrap"><h2>Por que escolher</h2><p class="sub">${esc(it.name)}</p><div class="grid">
+<div class="card"><span class="dot"></span><b>Atendimento próximo</b><span>Você fala direto com quem faz o trabalho.</span></div>
+<div class="card"><span class="dot"></span><b>Fácil de encontrar</b><span>Em ${esc(cid)}, com localização e contato à mão.</span></div>
+<div class="card"><span class="dot"></span><b>Resposta rápida</b><span>Tire as suas dúvidas pelo ${w?"WhatsApp":"telefone"}.</span></div></div></div></section>
+<section><div class="wrap ${map?"loc":""}"><div><h2>Onde estamos</h2><p class="sub">${esc(end||cid)}</p><p>Horários e informações: fale com a gente${it.phone?" pelo "+esc(it.phone):""}.</p>
+<a class="btn" href="https://www.google.com/maps/search/?api=1&query=${mapsQ}">Abrir no mapa</a></div>${map}</div></section>
+<section class="cta"><div class="wrap"><h2>Vamos conversar?</h2><p class="sub">Atendimento rápido, sem complicação.</p><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></section>
+<footer>© ${esc(it.name)}</footer>
+<div class="demo">Prévia criada pela <b>TRUZAV</b> · textos de exemplo</div>
+${img?`<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>`:""}
+</body></html>`;
+}
+let pvId=null,pvDev="m";
+function openPreview(id){pvId=id;previewEditor();$("#pm").hidden=false;$("#drawer").hidden=true;$("#scrim").hidden=true;document.body.classList.add("pmopen")}
+function closePreview(){$("#pm").hidden=true;document.body.classList.remove("pmopen");const id=pvId;pvId=null;if(id)openItem(id)}
+function dl(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+const slug=t=>norm(t).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+function previewEditor(){
+  const it=byId(pvId),pm=$("#pm");if(!it)return;const o=pvOpts(it);pm.replaceChildren();
+  const side=el("aside","pmside"),main=el("div","pmmain pvmain");
+  const top=el("div","pmtop"),x=el("button","b","Voltar ao negócio");x.onclick=closePreview;top.append(el("h2",0,"Prévia do site: "+it.name),x);side.append(top);
+  const save=()=>{it.prev={title:ti.value,sub:su.value,svc:sv.value,cor:co.value,map:mp?mp.checked:false};persist()};
+  const fld=(lab,node)=>{const w=el("div","field"),l=el("label",0,lab);l.htmlFor=node.id;w.append(l,node);side.append(w);return node};
+  const ti=el("input","t");ti.id="v-ti";ti.value=o.title;fld("Título",ti);
+  const su=el("textarea","t");su.id="v-su";su.value=o.sub;su.style.minHeight="70px";fld("Frase de abertura",su);
+  const sv=el("textarea","t");sv.id="v-sv";sv.value=o.svc;sv.style.minHeight="110px";fld("Serviços (um por linha)",sv);
+  const co=el("input","t");co.id="v-co";co.type="color";co.value=o.cor;co.style.height="44px";co.style.padding="4px";fld("Cor principal",co);
+  const fi=el("input","t");fi.id="v-fi";fi.type="file";fi.accept="image/*";fi.multiple=true;fld("Fotos (opcional, até 6)",fi);
+  const fh=el("p","muted",(pvPhotos[it.id]||[]).length?`${pvPhotos[it.id].length} foto(s) carregada(s). A primeira vai no topo.`:"A primeira foto vai no topo. As fotos não ficam salvas depois que você fecha a ferramenta.");fh.style.cssText="font-size:13px;margin:-6px 0 12px";side.append(fh);
+  let mp=null;if(it.lat!=null){const l=el("label","chk");mp=el("input");mp.type="checkbox";mp.checked=!!o.map;l.append(mp,document.createTextNode(" Mostrar mapa da localização"));l.style.margin="0 0 14px";side.append(l)}
+  const tg=el("div","chips");[["m","Celular"],["d","Computador"]].forEach(([k,lab])=>{const b=el("button","chip",lab);b.type="button";b.setAttribute("aria-pressed",pvDev===k);b.onclick=()=>{pvDev=k;previewEditor()};tg.append(b)});
+  const acts=el("div","pmacts");
+  const bi=el("button","b main","Baixar imagem para WhatsApp"),bh=el("button","b","Baixar HTML"),bo=el("button","b","Abrir em nova aba");
+  acts.append(bi,bh,bo);side.append(acts);
+  const note=el("p","muted","Os textos são exemplos do ramo. Revise antes de enviar e deixe claro na mensagem que é uma prévia.");note.style.cssText="font-size:13px;margin-top:12px";side.append(note);
+  const frame=el("iframe","pvframe"+(pvDev==="m"?" m":""));frame.title="Prévia do site";
+  main.append(tg,frame);pm.append(side,main);
+  let tm;const render=()=>{clearTimeout(tm);tm=setTimeout(()=>{save();frame.srcdoc=previewHTML(it,pvOpts(it),false)},250)};
+  [ti,su,sv,co].forEach(n=>n.oninput=render);if(mp)mp.onchange=render;
+  fi.onchange=async()=>{const fs=[...fi.files].slice(0,6);if(!fs.length)return;fh.textContent="Preparando as fotos…";
+    pvPhotos[it.id]=await Promise.all(fs.map(f=>new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.82))};im.src=r.result};r.readAsDataURL(f)})));
+    fh.textContent=`${pvPhotos[it.id].length} foto(s) carregada(s). A primeira vai no topo.`;render()};
+  const logP=()=>{if(!(it.hist||[]).some(e=>e.t==="nota"&&e.txt==="Prévia do site criada"&&dayOf(e.d)===today())){addLog(it,{t:"nota",txt:"Prévia do site criada"});persist()}};
+  bh.onclick=()=>{save();dl(`previa-${slug(it.name)}.html`,new Blob([previewHTML(it,pvOpts(it),false)],{type:"text/html"}));logP();toast("Prévia baixada em HTML.")};
+  bo.onclick=()=>{save();const u=URL.createObjectURL(new Blob([previewHTML(it,pvOpts(it),false)],{type:"text/html"}));window.open(u,"_blank");setTimeout(()=>URL.revokeObjectURL(u),60000)};
+  bi.onclick=()=>{save();bi.disabled=true;bi.textContent="Gerando a imagem…";
+    const f=document.createElement("iframe");f.style.cssText="position:fixed;left:-9999px;top:0;width:390px;height:844px;border:0";document.body.append(f);
+    const done=(ok,msg)=>{f.remove();bi.disabled=false;bi.textContent="Baixar imagem para WhatsApp";toast(msg)};
+    f.onload=()=>{const w2=f.contentWindow;let n=0;const wait=setInterval(async()=>{n++;if(w2.html2canvas){clearInterval(wait);try{await w2.document.fonts.ready;w2.document.querySelector(".demo").style.cssText="position:static;transform:none;display:block;width:max-content;margin:0 auto 28px";
+        const cv=await w2.html2canvas(w2.document.body,{scale:2,width:390,windowWidth:390,backgroundColor:"#fbfaf8",useCORS:true});
+        cv.toBlob(b=>{dl(`previa-${slug(it.name)}.png`,b);logP();done(true,"Imagem baixada. Envie no WhatsApp junto com a mensagem.")},"image/png")}catch(e){done(false,"Não consegui gerar a imagem. Use “Abrir em nova aba” e tire um print.")}}
+      else if(n>40){clearInterval(wait);done(false,"Não consegui gerar a imagem sem internet. Use “Abrir em nova aba” e tire um print.")}},150)};
+    f.srcdoc=previewHTML(it,pvOpts(it),true)};
+  frame.srcdoc=previewHTML(it,o,false);
 }
 
 /* ===== Mensagens prontas ===== */
@@ -931,56 +936,6 @@ function msgSection(it){
   const hint=el("p","muted",w?"Revise antes de enviar. Depois, registre o contato no bloco abaixo.":"Esse telefone não parece ser de WhatsApp. Copie a mensagem e envie por onde preferir.");hint.style.fontSize="13px";
   sec.append(ch,ta,ac,hint);return sec;
 }
-/* ===== Lista com potencial ===== */
-const LF={wa:["Com WhatsApp",it=>!!wa(it.phone)],fixo:["Só telefone fixo",it=>it.phone&&!wa(it.phone)],semsite:["Sem site",it=>it.tipo==="Sem site"],
- prova:["Com comentário",it=>(it.provas||[]).length],alto:["Potencial 70 ou mais",it=>pot(it).n>=70],ativos:["Esconder fechados e Não quis",it=>it.status!=="won"&&it.status!=="lost"]};
-const LCOL=[["pot","Potencial"],["name","Negócio"],["status","Etapa"],["phone","Telefone"],["tipo","Situação do site"],["cat","Categoria"],["nota","Google"]];
-let ls={st:"",flags:new Set(),sort:{k:"pot",d:-1}};
-const lval=(it,k)=>k==="pot"?pot(it).n:k==="status"?Object.keys(LBL).indexOf(it.status):k==="nota"?(+it.nota||0):(it[k]||"");
-function lrows(){const{k,d}=ls.sort;
-  return visible().filter(it=>(!ls.st||it.status===ls.st)&&[...ls.flags].every(f=>LF[f][1](it)))
-   .sort((a,b)=>{const x=lval(a,k),y=lval(b,k);return((typeof x==="number"?x-y:String(x).localeCompare(String(y),"pt-BR"))||a.name.localeCompare(b.name,"pt-BR"))*d})}
-function listView(){
-  const box=$("#listv"),I=visible(),n=I.length,pc=f=>n?Math.round(100*I.filter(f).length/n)+"%":"0%";
-  const ae=document.activeElement,keep=ae&&box.contains(ae)?ae.dataset.lk:null;
-  box.replaceChildren();
-  const st=el("div","lstats");[[n,"negócios na lista"],[pc(it=>wa(it.phone)),"com WhatsApp"],[pc(it=>it.tipo==="Sem site"),"sem site"],[I.filter(it=>pot(it).n>=70).length,"com potencial 70 ou mais"]]
-   .forEach(([v,t])=>{const d=el("div","lstat");d.append(el("b","num",v),el("span",0,t));st.append(d)});box.append(st);
-  const r1=el("div","lrow");r1.setAttribute("role","group");r1.setAttribute("aria-label","Filtrar por etapa");
-  [["","Todas",n],...ST.map(([s,l])=>[s,l,I.filter(it=>it.status===s).length])].forEach(([s,l,c])=>{
-    const b=el("button","chip",l+" ");b.type="button";b.dataset.lk="st"+s;b.append(el("b","num",c));b.setAttribute("aria-pressed",ls.st===s);b.onclick=()=>{ls.st=s;listView()};r1.append(b)});
-  box.append(r1);
-  const r2=el("div","lrow");r2.setAttribute("role","group");r2.setAttribute("aria-label","Filtros");
-  Object.entries(LF).forEach(([k,[l]])=>{const b=el("button","chip",l);b.type="button";b.dataset.lk="f"+k;b.setAttribute("aria-pressed",ls.flags.has(k));
-    b.onclick=()=>{ls.flags.has(k)?ls.flags.delete(k):ls.flags.add(k);listView()};r2.append(b)});
-  r2.append(el("div","sp"));const cx=el("button","b link","Exportar CSV");cx.prepend(svg('<svg class="i" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>'));cx.onclick=csv;r2.append(cx);box.append(r2);
-  const rows=lrows(),wrap=el("div","ltab"),t=el("table"),th=el("thead"),tr=el("tr"),tb=el("tbody");
-  wrap.tabIndex=0;wrap.setAttribute("role","region");wrap.setAttribute("aria-label","Tabela de negócios");
-  LCOL.forEach(([k,l])=>{const h=el("th"),b=el("button",0,l);h.scope="col";b.dataset.lk="c"+k;if(ls.sort.k===k)h.setAttribute("aria-sort",ls.sort.d>0?"ascending":"descending");
-    b.onclick=()=>{ls.sort=ls.sort.k===k?{k,d:-ls.sort.d}:{k,d:k==="pot"||k==="nota"?-1:1};listView()};h.append(b);tr.append(h)});
-  const ha=el("th");ha.scope="col";ha.append(el("span","sr","Ações"));tr.append(ha);th.append(tr);
-  rows.forEach(it=>{const r=el("tr"),td=(c,x)=>{const e=el("td",c,x);r.append(e);return e};
-    td("c-pot").append(potEl(it));
-    const nb=el("button","nm",it.name);nb.onclick=()=>openItem(it.id);const c2=td("c-nm");c2.append(nb);if(it.city)c2.append(el("small",0,it.city));
-    const sl=el("select","sel");sl.setAttribute("aria-label","Etapa de "+it.name);ST.forEach(([v,l])=>{const o=el("option",0,l);o.value=v;o.selected=v===it.status;sl.append(o)});sl.onchange=()=>move(it.id,sl.value);td("c-st").append(sl);
-    const c4=td("c-ph");if(it.phone){c4.append(document.createTextNode(it.phone),el("span","ph"+(wa(it.phone)?" cel":""),wa(it.phone)?"WhatsApp":"fixo"))}else c4.append(el("small",0,"sem telefone"));
-    td("c-tp").append(it.tipo?tag(it.tipo):el("small",0,"não informado"));
-    td("c-cat",it.cat||"");
-    const c7=td("c-nota");if(+it.nota)c7.append(document.createTextNode("★ "+(+it.nota).toFixed(1).replace(".",",")),el("small","num",(+it.aval||0)+" avaliações"));else c7.append(el("small",0,"sem dado"));
-    const ca=td("c-act"),mb=el("button","b mini",wa(it.phone)?"Mensagem":"Abrir");mb.type="button";mb.onclick=()=>openItem(it.id);ca.append(mb);
-    tb.append(r)});
-  if(!rows.length){const r=el("tr"),c=el("td","empty","Nenhum negócio com esses filtros. Tire um filtro para ver mais.");c.colSpan=8;r.append(c);tb.append(r)}
-  t.append(th,tb);wrap.append(t);box.append(wrap);
-  const ft2=el("div","lfoot");ft2.append(el("span","num",`Mostrando ${rows.length} de ${data.items.length} negócios`),el("span",0,"Pare o mouse no potencial para ver a conta. Nota e avaliações do Google você preenche em Dados do negócio."));box.append(ft2);
-  if(keep)box.querySelector(`[data-lk="${keep}"]`)?.focus();
-}
-function csv(){
-  const cel=v=>{let s=String(v??"");if(/^[=+\-@\t\r]/.test(s))s="'"+s;return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
-  const H=["Negócio","Categoria","Etapa","Potencial","Telefone","WhatsApp","Situação do site","Nota no Google","Avaliações","Site","E-mail","Cidade","Pessoa de contato","Valor da proposta","Anotações","Link do Google Maps"];
-  const L=lrows().map(it=>[it.name,it.cat,LBL[it.status],pot(it).n,it.phone,wa(it.phone)?"sim":"não",it.tipo,it.nota||"",it.aval||"",it.site,it.email,it.city,it.contato,it.valor||"",it.notes,it.maps]);
-  const b=new Blob(["﻿"+[H,...L].map(r=>r.map(cel).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");
-  a.href=URL.createObjectURL(b);a.download=`truzav-lista-${today()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast(`CSV exportado com ${L.length} negócios.`);
-}
 function histView(){
   const box=$("#histv");box.replaceChildren();const ids=new Set(visible().map(i=>i.id));
   const all=[];data.items.forEach(it=>{if(ids.has(it.id))(it.hist||[]).forEach(e=>all.push([it,e]))});
@@ -995,11 +950,11 @@ function histView(){
 function setView(v){
   view=v;document.querySelectorAll(".tab[data-v]").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
   document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  $("#board").hidden=v!=="board";$("#listv").hidden=v!=="list";$("#mapv").hidden=v!=="map";$("#histv").hidden=v!=="hist";
+  $("#board").hidden=v!=="board";$("#mapv").hidden=v!=="map";$("#histv").hidden=v!=="hist";
   if(v==="map"){initMap();setTimeout(()=>{map&&map.invalidateSize();markers()},0)}
   renderAll();
 }
-function renderAll(){head();if(view==="board")board();else if(view==="list")listView();else if(view==="hist")histView();else{side();markers()}if(openId&&!$("#drawer").hidden&&document.activeElement?.tagName!=="TEXTAREA"&&!document.activeElement?.closest?.(".field"))drawer()}
+function renderAll(){head();if(view==="board")board();else if(view==="hist")histView();else{side();markers()}if(openId&&!$("#drawer").hidden&&document.activeElement?.tagName!=="TEXTAREA"&&!document.activeElement?.closest?.(".field"))drawer()}
 
 TIPOS.forEach(t=>{const o=el("option",0,t);o.value=t;$("#ft").append(o)});
 $("#ft").onchange=e=>{ft=e.target.value;renderAll()};
@@ -1007,7 +962,7 @@ document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>setView(b.dataset
 const onQ=e=>{q=e.target.value.trim().toLowerCase();$("#q").value=$("#q2").value=e.target.value;renderAll()};
 $("#q").oninput=onQ;$("#q2").oninput=onQ;
 $("#newBtn").onclick=newForm;$("#findBtn").onclick=findForm;$("#scrim").onclick=closeDrawer;
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#pm").hidden){closeProposal();return}if(e.key==="Escape"){if(placing){placing=null;$("#placing")?.remove()}else closeDrawer()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#pm").hidden){pvId?closePreview():closeProposal();return}if(e.key==="Escape"){if(placing){placing=null;$("#placing")?.remove()}else closeDrawer()}});
 $("#exp").onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`truzav-prospeccao-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Backup exportado.")};
 $("#impBtn").onclick=()=>$("#imp").click();
 $("#imp").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;data=d;persist();fitted=false;closeDrawer();renderAll();toast(`Backup importado: ${d.items.length} negócios.`)}catch(x){toast("Esse arquivo não é um backup desta ferramenta.")}e.target.value=""};r.readAsText(f)};
