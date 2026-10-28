@@ -280,6 +280,8 @@ body.pmopen{overflow:hidden}
 .hint{font-size:12px;color:var(--soft)}
 .row2{display:flex;gap:8px;align-items:stretch}.row2 .t{flex:1}.row2 .b{flex:none}
 .fixst{margin-top:10px;font-size:14px;color:var(--soft)}.fixst summary{cursor:pointer;padding:6px 0}.fixst select{margin-top:6px}
+
+.pvg{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}.pvg h3{font-size:13px;color:var(--soft);font-weight:600;margin:0 0 10px}
 </style>
 </head>
 <body>
@@ -867,72 +869,159 @@ function findForm(){
 }
 
 /* ===== Prévia do site para o lead ===== */
-const PV_TAG={beleza:"Cuidado com o seu visual, com hora marcada e atendimento de verdade.",pet:"Cuidado e carinho para quem faz parte da família.",juridico:"Orientação clara para resolver o que é importante para você.",
- construcao:"Do projeto à entrega, com acompanhamento em cada etapa.",alimentacao:"Feito com carinho, todos os dias. Passe aqui ou faça a sua encomenda.",fitness:"Treine com acompanhamento e encontre o ritmo certo para você.",
- automotivo:"Cuide do seu carro com quem entende. Peça o seu orçamento pelo WhatsApp.",imobiliaria:"O imóvel certo para você, perto de tudo o que importa.",educacao:"Aprenda com quem acompanha a sua evolução de perto.",
- saude:"Atendimento atencioso, perto de você. Agende pelo WhatsApp.",geral:"Conheça o nosso trabalho e fale com a gente pelo WhatsApp."};
-const PV_COR={beleza:"#7A3E48",pet:"#2E7D6B",juridico:"#1F3A5F",construcao:"#A44A17",alimentacao:"#8C3F14",fitness:"#B23A0E",automotivo:"#1F4E79",imobiliaria:"#234E52",educacao:"#3B5BA9",saude:"#0F766E",geral:"#334155"};
+const PV_STYLES={moderno:"Moderno",elegante:"Elegante",impacto:"Impacto",acolhedor:"Acolhedor",clean:"Clean"};
+const PV_COR={beleza:"#7A3E48",pet:"#2E7D6B",juridico:"#1F3A5F",construcao:"#7A5A3A",alimentacao:"#B23A0E",fitness:"#C2410C",automotivo:"#1F4E79",imobiliaria:"#234E52",educacao:"#3B5BA9",saude:"#0F766E",geral:"#334155"};
+const PV_LIB={
+ beleza:{subs:["Cuidado com o seu visual, com hora marcada e atendimento de verdade.","O seu momento de cuidado, do jeito que você gosta.","Atendimento caprichado, do primeiro contato ao resultado."],
+  extra:{t:"Como agendar",s:"Simples e rápido, pelo WhatsApp.",type:"steps",items:[["Escolha o serviço","Veja o que fazemos logo acima."],["Chame no WhatsApp","Combine o melhor dia e horário."],["É só vir","A gente cuida do resto."]]},
+  faq:[["Precisa agendar?","Sim. Com hora marcada, você não espera."],["Quais as formas de pagamento?","Chame no WhatsApp para saber."],["Atendem aos sábados?","Confira os horários abaixo."]]},
+ pet:{subs:["Cuidado e carinho para quem faz parte da família.","Banho, tosa e cuidado do seu pet num lugar só.","Seu pet bem cuidado, do jeito que ele merece."],
+  extra:{t:"Agende o banho e tosa",s:"Em três passos.",type:"steps",items:[["Chame no WhatsApp","Conte o porte e a raça do seu pet."],["Escolha o horário","A gente confirma na hora."],["Traga o seu pet","E leve para casa cheiroso e feliz."]]},
+  faq:[["Precisa agendar o banho?","É melhor agendar para não esperar."],["Atendem gatos?","Pergunte pelo WhatsApp."],["Tem atendimento veterinário?","Chame no WhatsApp para saber os horários."]]},
+ alimentacao:{subs:["Feito com carinho, todos os dias.","Sabor de verdade, perto de você.","Passe aqui ou peça pelo WhatsApp."],
+  extra:{t:"Destaques do cardápio",s:"Alguns dos mais pedidos.",type:"menu"},
+  faq:[["Fazem entrega?","Chame no WhatsApp e confira o seu endereço."],["Aceitam encomendas?","Combine com antecedência pelo WhatsApp."],["Qual o horário?","Confira os horários abaixo."]]},
+ fitness:{subs:["Treine com acompanhamento e encontre o seu ritmo.","Mais saúde e disposição, com quem entende.","Comece agora, com uma aula experimental."],
+  extra:{t:"Aula experimental",s:"Conheça antes de decidir.",type:"cta",txt:"Agende uma aula para conhecer a estrutura e os professores."},
+  faq:[["Preciso fazer avaliação?","Chame no WhatsApp para saber como funciona."],["Quais os horários?","Peça a grade completa pelo WhatsApp."],["Quais os planos?","Chame no WhatsApp e veja as opções."]]},
+ automotivo:{subs:["Cuide do seu carro com quem entende.","Diagnóstico certo e serviço bem feito.","Peça o seu orçamento pelo WhatsApp."],
+  extra:{t:"Como funciona",s:"Do orçamento à entrega.",type:"steps",items:[["Orçamento","Mande o modelo, o ano e o problema pelo WhatsApp."],["Diagnóstico","A gente avalia o carro e explica o que precisa."],["Serviço","Você aprova e a gente faz."]]},
+  faq:[["Fazem orçamento pelo WhatsApp?","Mande os dados do carro e a gente responde."],["Precisa agendar?","Chame antes para combinar o melhor horário."],["Atendem quais marcas?","Pergunte pelo WhatsApp."]]},
+ construcao:{subs:["Do projeto à entrega, com acompanhamento em cada etapa.","Acabamento que faz diferença no resultado.","Seu projeto feito com cuidado e prazo combinado."],
+  extra:{t:"Do orçamento à entrega",s:"Como trabalhamos.",type:"steps",items:[["Medição","Vamos até o local entender o projeto."],["Orçamento","Você recebe a proposta com o prazo."],["Execução","Produção e instalação com acompanhamento."]]},
+  faq:[["Fazem orçamento sem compromisso?","Chame no WhatsApp e conte o seu projeto."],["Atendem quais regiões?","Pergunte pelo WhatsApp."],["Qual o prazo?","Depende do projeto e é combinado no orçamento."]]},
+ juridico:{subs:["Orientação clara para resolver o que é importante para você.","Atendimento próximo, com linguagem simples.","Converse com a gente antes de tomar uma decisão."],
+  extra:{t:"Como funciona o atendimento",s:"Simples e direto.",type:"steps",items:[["Primeiro contato","Conte a sua situação pelo WhatsApp."],["Conversa","Marcamos um horário para entender o caso."],["Orientação","Você recebe os próximos passos."]]},
+  faq:[["Atendem online?","Chame no WhatsApp para saber."],["Como marcar uma conversa?","Pelo WhatsApp ou telefone."],["O que levar no primeiro atendimento?","A gente orienta no primeiro contato."]]},
+ imobiliaria:{subs:["O imóvel certo para você, perto de tudo o que importa.","Comprar, vender ou alugar, com quem conhece a região.","Atendimento próximo, do começo ao fim."],
+  extra:{t:"Quer vender ou alugar o seu imóvel?",s:"A gente ajuda.",type:"cta",txt:"Chame no WhatsApp para avaliar o seu imóvel."},
+  faq:[["Fazem avaliação do imóvel?","Chame no WhatsApp para combinar."],["Trabalham com financiamento?","Pergunte pelo WhatsApp."],["Atendem quais bairros?","Fale com a gente."]]},
+ educacao:{subs:["Aprenda com quem acompanha a sua evolução de perto.","Turmas pequenas e atenção de verdade.","Comece agora: fale com a gente sobre as turmas."],
+  extra:{t:"Como fazer a matrícula",s:"Em três passos.",type:"steps",items:[["Chame no WhatsApp","Conte o que você quer aprender."],["Escolha a turma","Veja os horários disponíveis."],["Comece as aulas","A gente acompanha de perto."]]},
+  faq:[["Tem aula experimental?","Pergunte pelo WhatsApp."],["Quais os horários?","Peça a lista de turmas pelo WhatsApp."],["Atendem crianças?","Chame no WhatsApp para saber."]]},
+ saude:{subs:["Atendimento atencioso, perto de você.","Cuidado com a sua saúde, com quem acompanha de perto.","Agende a sua consulta pelo WhatsApp."],
+  extra:{t:"Como agendar",s:"Rápido e sem complicação.",type:"steps",items:[["Chame no WhatsApp","Conte o que você precisa."],["Escolha o horário","Confirmamos a sua consulta."],["Venha até nós","Com localização fácil."]]},
+  faq:[["Atendem convênio?","Pergunte pelo WhatsApp."],["Como agendar?","Pelo WhatsApp ou telefone."],["Qual o horário?","Confira os horários abaixo."]]},
+ geral:{subs:["Conheça o nosso trabalho e fale com a gente.","Atendimento próximo, do jeito que você precisa.","Resolva pelo WhatsApp, sem complicação."],
+  extra:{t:"Como funciona",s:"Simples assim.",type:"steps",items:[["Chame no WhatsApp","Conte o que você precisa."],["Orçamento","A gente responde com as opções."],["Pronto","Combinamos e resolvemos."]]},
+  faq:[["Como pedir um orçamento?","Chame no WhatsApp."],["Qual o horário?","Confira os horários abaixo."],["Atendem quais regiões?","Pergunte pelo WhatsApp."]]}};
 function pvServ(it,seg){const t=norm(it.name+" "+it.cat);
   if(seg==="beleza")return /barb/.test(t)?["Corte","Barba","Corte e barba","Sobrancelha"]:["Corte e escova","Coloração","Tratamentos","Manicure e pedicure"];
-  if(seg==="juridico")return /advoc|advog/.test(t)?["Consulta inicial","Direito de família","Direito do consumidor","Direito trabalhista"]:["Abertura de empresa","MEI","Imposto de renda","Rotina contábil"];
-  return ({pet:["Consultas","Vacinas","Exames","Banho e tosa"],construcao:["Projetos","Construção","Reformas","Acabamentos"],alimentacao:["Pães e salgados","Bolos e doces","Encomendas para festas","Café e lanches"],
-   fitness:["Musculação","Treino funcional","Aulas em grupo","Avaliação física"],automotivo:["Revisão completa","Mecânica geral","Freios e suspensão","Elétrica"],imobiliaria:["Venda","Aluguel","Avaliação do imóvel","Administração"],
-   educacao:["Cursos","Turmas regulares","Aulas particulares","Matrícula"],saude:["Consultas","Exames","Procedimentos","Retornos"],geral:["Serviço principal","Atendimento personalizado","Orçamento pelo WhatsApp","Acompanhamento"]})[seg]||[];
+  if(seg==="juridico")return /advoc|advog/.test(t)?["Direito de família","Direito do consumidor","Direito trabalhista","Previdenciário"]:["Abertura de empresa","MEI","Imposto de renda","Rotina contábil"];
+  if(seg==="alimentacao")return /pizz/.test(t)?["Pizzas tradicionais","Pizzas especiais","Pizzas doces","Bebidas"]:/padar|confeit|doce|bolo/.test(t)?["Pães e salgados","Bolos e doces","Encomendas para festas","Café"]:["Pratos do dia","Lanches","Porções","Bebidas"];
+  return ({pet:["Banho e tosa","Consultas","Vacinas","Rações e acessórios"],construcao:["Projetos","Execução","Reformas","Acabamentos"],fitness:["Musculação","Treino funcional","Aulas em grupo","Avaliação física"],
+   automotivo:["Revisão completa","Mecânica geral","Freios e suspensão","Elétrica"],imobiliaria:["Venda","Aluguel","Avaliação do imóvel","Administração"],educacao:["Cursos","Turmas regulares","Aulas particulares","Reforço"],
+   saude:["Consultas","Avaliação","Tratamentos","Retornos"],geral:["Serviço principal","Atendimento personalizado","Orçamento pelo WhatsApp","Acompanhamento"]})[seg]||[];
 }
-function pvOpts(it){const seg=segOf(it);return Object.assign({title:it.name,sub:PV_TAG[seg],svc:pvServ(it,seg).join("\n"),cor:PV_COR[seg],map:it.lat!=null},it.prev||{})}
-let pvPhotos={};
+function pvStyleFor(it,seg){const t=norm(it.name+" "+it.cat);
+  if(seg==="beleza")return /barb/.test(t)?"impacto":"elegante";
+  if(seg==="alimentacao")return /pizz|burg|lanch|bar\b/.test(t)?"impacto":"acolhedor";
+  return ({saude:"clean",pet:"acolhedor",fitness:"impacto",automotivo:"impacto",construcao:"elegante",juridico:"elegante",imobiliaria:"clean",educacao:"acolhedor",geral:"moderno"})[seg]||"moderno";
+}
+function pvOpts(it){const seg=segOf(it);return Object.assign({style:pvStyleFor(it,seg),title:it.name,sub:PV_LIB[seg].subs[0],svc:pvServ(it,seg).join("\n"),cor:PV_COR[seg],map:it.lat!=null,extra:true,faq:true,nota:"",aval:"",horas:""},it.prev||{})}
+let pvPhotos={},pvLogo={};
+const hexRgb=h=>{h=h.replace("#","");return [0,2,4].map(i=>parseInt(h.substr(i,2),16))};
+const rgbHex=a=>"#"+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
+const lum=h=>{const c=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+function darkEnough(h){let c=hexRgb(h),i=0;while(((1.05)/(lum(rgbHex(c))+.05))<4.5&&i<20){c=c.map(v=>v*.88);i++}return rgbHex(c)}
+function colorFrom(src){return new Promise(res=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=40;const x=c.getContext("2d");x.drawImage(im,0,0,40,40);
+  const d=x.getImageData(0,0,40,40).data;let best=null,bs=0;const bins={};
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<128)continue;const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),s=mx?(mx-mn)/mx:0,l=(mx+mn)/510;if(s<.28||l<.12||l>.9)continue;
+    const k=[r>>5,g>>5,b>>5].join();bins[k]=bins[k]||{n:0,r:0,g:0,b:0};const o=bins[k];o.n++;o.r+=r;o.g+=g;o.b+=b}
+  Object.values(bins).forEach(o=>{if(o.n>bs){bs=o.n;best=o}});res(best?darkEnough(rgbHex([best.r/best.n,best.g/best.n,best.b/best.n])):null)};im.onerror=()=>res(null);im.src=src})}
+const PV_FONTS={moderno:"family=Plus+Jakarta+Sans:wght@400;600;800",elegante:"family=Playfair+Display:wght@600;700&family=Inter:wght@400;500",impacto:"family=Bebas+Neue&family=Inter:wght@400;600",acolhedor:"family=Nunito:wght@400;700;800",clean:"family=Inter:wght@400;500;700"};
+function pvVars(a){const A=hexRgb(a),mix=(w,p)=>rgbHex(A.map((v,i)=>v*p+hexRgb(w)[i]*(1-p))),t=p=>`rgba(${A.join(",")},${p})`;
+  return `--a12w:${mix("#ffffff",.12)};--a9e:${mix("#fffdf9",.09)};--a35w:${mix("#ffffff",.35)};--a22d:${mix("#17171a",.22)};--a45t:${t(.45)};--a6c:${mix("#fffdf8",.06)};--a14e:${mix("#eeeeee",.14)};--a14w:${mix("#ffffff",.14)};--a40w:${mix("#ffffff",.4)};--a25t:${t(.25)};--a8w:${mix("#ffffff",.08)};--a20w:${mix("#ffffff",.2)}`}
+function pvCSS(st){
+  const base=`*{box-sizing:border-box}body{margin:0;font:16px/1.6 var(--fb);color:var(--ink);background:var(--bg)}img{display:block;max-width:100%}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}h1,h2,h3{font-family:var(--fh);line-height:1.1;margin:0}
+header{position:sticky;top:0;z-index:5;background:var(--hbg);border-bottom:1px solid var(--line)}header .wrap{display:flex;align-items:center;justify-content:space-between;height:66px;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink)}.brand img{height:40px;width:auto}
+.mono{width:40px;height:40px;flex:none;border-radius:var(--r);background:var(--a);color:#fff;display:grid;place-items:center;font:700 14px var(--fb)}
+nav{display:flex;gap:22px;font-size:14px}nav a{color:var(--soft);text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--a);color:#fff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:var(--rb);font-size:15px;border:2px solid var(--a)}
+.btn.ghost{background:transparent;color:inherit;border-color:currentColor}
+.rate{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-top:18px;padding:7px 12px;border-radius:var(--rb);background:var(--chip)}.rate b{color:#E8A400;font-size:16px}
+section{padding:64px 0}.kick{font:700 12px var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--a);margin:0 0 10px}
+h2{font-size:clamp(28px,4.5vw,40px)}.sub{color:var(--soft);margin:8px 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}.card h3{font-size:19px;margin:12px 0 4px;font-family:var(--fb);font-weight:700}.card p{margin:0;color:var(--soft);font-size:14px}
+.ic{width:38px;height:38px;border-radius:var(--rb);background:var(--chip);display:grid;place-items:center;color:var(--a);font:800 15px var(--fb)}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.step{counter-increment:s;padding:22px;border-radius:var(--r);background:var(--card);border:1px solid var(--line)}.step:before{content:counter(s,decimal-leading-zero);display:block;font:700 28px var(--fh);color:var(--a);margin-bottom:6px}
+.step h3{font-size:18px;font-family:var(--fb)}.step p{margin:6px 0 0;color:var(--soft);font-size:14px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 32px}.mi{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px dashed var(--line);font-weight:600}.mi span{color:var(--a);font-size:14px;white-space:nowrap}
+.ctab{border-radius:var(--r);padding:36px;background:var(--a);color:#fff;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between}.ctab p{margin:6px 0 0;opacity:.9}.ctab .btn{background:#fff;color:var(--a);border-color:#fff}
+.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--r)}
+details{border-bottom:1px solid var(--line);padding:16px 0}summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}summary:after{content:"+";color:var(--a);font-size:22px;line-height:1}details[open] summary:after{content:"–"}details p{margin:8px 0 0;color:var(--soft)}
+.loc{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}.map{width:100%;aspect-ratio:4/3;border:0;border-radius:var(--r);background:#e6e2db}
+.mapimg{display:grid;place-items:center;color:#5b6170;font-weight:600}.mapimg span{background:#fff;padding:8px 14px;border-radius:999px}
+.info{margin:0 0 18px;padding:0;list-style:none}.info li{padding:6px 0;color:var(--soft)}.info b{color:var(--ink);font-weight:700;margin-right:6px}
+.final{text-align:center}.final .sub{margin-bottom:22px}
+footer{padding:26px 0 70px;font-size:13px;color:var(--soft);text-align:center;border-top:1px solid var(--line)}
+.demo{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#111;color:#F5F0E8;font:500 12px system-ui,sans-serif;padding:7px 14px;border-radius:999px;z-index:9;white-space:nowrap}.demo b{color:#F0642B}
+.hero{position:relative}.hero h1{font-size:clamp(38px,7vw,64px);letter-spacing:-.02em;max-width:15ch}.hero p.lead{font-size:18px;max-width:38ch;margin:16px 0 26px;opacity:.92}.hero .row{display:flex;flex-wrap:wrap;gap:10px}
+.tag{display:inline-block;font-size:13px;font-weight:700;padding:5px 12px;border-radius:var(--rb);margin-bottom:18px;background:var(--chip);color:var(--a)}
+@media(max-width:760px){.loc{grid-template-columns:1fr}nav,header .btn{display:none}section{padding:48px 0}}`;
+  const S={
+   moderno:`:root{--fh:"Plus Jakarta Sans",system-ui,sans-serif;--fb:"Plus Jakarta Sans",system-ui,sans-serif;--bg:#fbfaf8;--ink:#16181d;--soft:#5b6170;--line:#e7e4df;--card:#fff;--hbg:rgba(251,250,248,.95);--chip:var(--a12w);--r:18px;--rb:999px}
+    .hero{color:#fff;background:linear-gradient(135deg,var(--a),#111 150%);padding:72px 0 80px}.hero.ph{background:linear-gradient(180deg,rgba(0,0,0,.3),rgba(0,0,0,.72)),var(--img) center/cover}
+    .hero .tag{background:rgba(255,255,255,.16);color:#fff}.hero .btn{background:#fff;color:var(--a);border-color:#fff}.hero .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}.hero .rate{background:rgba(255,255,255,.14)}`,
+   elegante:`:root{--fh:"Playfair Display",Georgia,serif;--fb:Inter,system-ui,sans-serif;--bg:#faf7f2;--ink:#1d1a17;--soft:#6b635a;--line:#e5ddd2;--card:#fffdf9;--hbg:rgba(250,247,242,.96);--chip:var(--a9e);--r:4px;--rb:2px}
+    .btn{text-transform:uppercase;letter-spacing:.08em;font-size:13px;padding:14px 24px}.brand{font-family:var(--fh);font-size:20px}
+    .hero{padding:64px 0}.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}.hero .tag{background:none;padding:0;letter-spacing:.14em;text-transform:uppercase;font-size:12px}
+    .hero h1{font-weight:600}.media{aspect-ratio:4/5;border-radius:220px 220px 4px 4px;background:var(--img,linear-gradient(160deg,var(--chip),var(--a35w))) center/cover;border:1px solid var(--line)}
+    .card{border-top:3px solid var(--a)}.step:before{font-style:italic}
+    @media(max-width:760px){.hero .wrap{grid-template-columns:1fr}.media{max-height:340px}}`,
+   impacto:`:root{--fh:"Bebas Neue",Impact,sans-serif;--fb:Inter,system-ui,sans-serif;--bg:#0f0f10;--ink:#f4f4f5;--soft:#a1a1aa;--line:#26262b;--card:#17171a;--hbg:rgba(15,15,16,.94);--chip:var(--a22d);--r:6px;--rb:4px}
+    h1,h2{text-transform:uppercase;letter-spacing:.01em;font-weight:400}.hero h1{font-size:clamp(54px,11vw,104px);line-height:.92;max-width:12ch}
+    .hero{padding:80px 0 88px;background:radial-gradient(circle at 80% 20%,var(--a45t),transparent 55%),#0f0f10}.hero.ph{background:linear-gradient(90deg,rgba(15,15,16,.95) 30%,rgba(15,15,16,.45)),var(--img) center/cover}
+    .hero h1 em{font-style:normal;color:var(--a);filter:brightness(1.6)}.tag{color:#fff;background:var(--a)}.card{border-top:3px solid var(--a)}.kick{filter:brightness(1.7)}.mi span,.ic{filter:brightness(1.6)}
+    .step:before{font-size:44px}.final{background:var(--a)}.final .btn{background:#fff;color:#111;border-color:#fff}.final .sub{color:rgba(255,255,255,.85)}`,
+   acolhedor:`:root{--fh:Nunito,system-ui,sans-serif;--fb:Nunito,system-ui,sans-serif;--bg:var(--a6c);--ink:#26221f;--soft:#6b6460;--line:var(--a14e);--card:#fff;--hbg:rgba(255,253,248,.95);--chip:var(--a14w);--r:28px;--rb:999px}
+    h1,h2{font-weight:800}.hero{padding:56px 0 64px}.hero .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+    .media{aspect-ratio:1;border-radius:46% 54% 42% 58%/52% 44% 56% 48%;background:var(--img,radial-gradient(circle at 30% 30%,#fff,var(--chip) 60%,var(--a40w))) center/cover;box-shadow:0 20px 50px var(--a25t)}
+    .card,.step{box-shadow:0 8px 24px rgba(0,0,0,.05);border:0}.ic{border-radius:50%}
+    @media(max-width:760px){.hero .wrap{grid-template-columns:1fr}.media{max-width:320px;margin:0 auto}}`,
+   clean:`:root{--fh:Inter,system-ui,sans-serif;--fb:Inter,system-ui,sans-serif;--bg:#fff;--ink:#0f172a;--soft:#64748b;--line:#e2e8f0;--card:#fff;--hbg:rgba(255,255,255,.96);--chip:var(--a8w);--r:10px;--rb:8px}
+    h1,h2{font-weight:700;letter-spacing:-.03em}.hero{padding:72px 0 40px;text-align:center}.hero h1,.hero p.lead{margin-left:auto;margin-right:auto}.hero .row{justify-content:center}
+    .media{margin:44px auto 0;max-width:980px;aspect-ratio:16/7;border-radius:var(--r);background:var(--img,linear-gradient(120deg,var(--chip),var(--a20w))) center/cover;border:1px solid var(--line)}
+    section{border-top:1px solid var(--line)}.kick{color:var(--soft)}.kick:before{content:attr(data-n)" — ";color:var(--a)}`};
+  return base+S[st];
+}
 function previewHTML(it,o,img){
+  const seg=segOf(it),L=PV_LIB[seg],st=o.style in PV_STYLES?o.style:"moderno";
   const w=wa(it.phone),ctaHref=w||(it.phone?"tel:"+it.phone.replace(/[^\d+]/g,""):"#"),ctaTxt=w?"Chamar no WhatsApp":"Ligar agora";
   const ini=it.name.replace(/[^\p{L}\p{N} ]/gu,"").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("");
   const end=((it.notes||"").match(/Endereço: (.*)/)||[])[1]||"";const cid=it.city||"Viamão";
-  const ph=pvPhotos[it.id]||[];const svc=o.svc.split("\n").map(s=>s.trim()).filter(Boolean);
+  const ph=pvPhotos[it.id]||[],logo=pvLogo[it.id];const svc=o.svc.split("\n").map(s=>s.trim()).filter(Boolean);
   const mapsQ=it.lat!=null?`${it.lat},${it.lng}`:encodeURIComponent(it.name+" "+cid);
   const map=o.map&&it.lat!=null?(img?`<div class="map mapimg"><span>📍 ${esc(end||cid)}</span></div>`:`<iframe class="map" loading="lazy" src="https://maps.google.com/maps?q=${it.lat},${it.lng}&z=16&output=embed" title="Mapa"></iframe>`):"";
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-<style>:root{--a:${o.cor};--ink:#16181d;--soft:#5b6170;--bg:#fbfaf8;--line:#e7e4df}*{box-sizing:border-box}
-body{margin:0;font:16px/1.6 "Plus Jakarta Sans",system-ui,sans-serif;color:var(--ink);background:var(--bg)}
-.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
-header{position:sticky;top:0;background:rgba(251,250,248,.94);border-bottom:1px solid var(--line);z-index:5}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;line-height:1.2}
-.mono{width:38px;height:38px;flex:none;border-radius:11px;background:var(--a);color:#fff;display:grid;place-items:center;font-size:14px}
-.btn{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px;font-size:15px}
-.btn.ghost{background:transparent;color:inherit;border:1.5px solid currentColor}
-.hero{color:#fff;background:linear-gradient(135deg,var(--a),#111 140%);padding:64px 0 72px}
-.hero.ph{background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.7)),url(${ph[0]||""}) center/cover}
-.tag{display:inline-block;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);padding:5px 12px;border-radius:999px;margin-bottom:18px}
-.hero h1{font-size:clamp(34px,7vw,56px);line-height:1.05;margin:0 0 14px;font-weight:800;letter-spacing:-.02em;max-width:16ch}
-.hero p{font-size:18px;max-width:36ch;margin:0 0 26px;opacity:.94}
-.hero .btn{background:#fff;color:var(--a)}.hero .row{display:flex;flex-wrap:wrap;gap:10px}.hero .btn.ghost{color:#fff;background:transparent}
-section{padding:56px 0}h2{font-size:28px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}.sub{color:var(--soft);margin:0 0 26px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}.card b{display:block;font-size:17px}.card span{color:var(--soft);font-size:14px}
-.dot{width:10px;height:10px;border-radius:3px;background:var(--a);display:block;margin-bottom:14px}
-.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
-.why{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.loc{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}
-.map{width:100%;aspect-ratio:4/3;border:0;border-radius:16px;background:#e9e6e0}
-.mapimg{display:grid;place-items:center;color:var(--soft);font-weight:600;background:#e6e2db}
-.mapimg span{background:#fff;padding:8px 14px;border-radius:999px}
-.cta{background:var(--ink);color:#fff;text-align:center}.cta .sub{color:#c9ccd3}
-footer{padding:22px 0 64px;font-size:13px;color:var(--soft);text-align:center}
-.demo{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#111;color:#F5F0E8;font-size:12px;padding:7px 14px;border-radius:999px;z-index:9;white-space:nowrap}
-.demo b{color:#F0642B}
-@media(max-width:720px){.loc{grid-template-columns:1fr}header .btn{display:none}section{padding:44px 0}}
-</style></head><body>
-<header><div class="wrap"><div class="brand"><span class="mono">${esc(ini)}</span>${esc(it.name)}</div><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></header>
-<div class="hero${ph[0]?" ph":""}"><div class="wrap"><span class="tag">${esc(it.cat||"")}${it.cat?" em ":""}${esc(cid)}</span><h1>${esc(o.title)}</h1><p>${esc(o.sub)}</p>
-<div class="row"><a class="btn" href="${ctaHref}">${ctaTxt}</a><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${mapsQ}">Como chegar</a></div></div></div>
-${svc.length?`<section><div class="wrap"><h2>Serviços</h2><p class="sub">O que você encontra aqui.</p><div class="grid">${svc.map(s=>`<div class="card"><span class="dot"></span><b>${esc(s)}</b><span>Fale com a gente para saber mais.</span></div>`).join("")}</div></div></section>`:""}
-${ph.length>1?`<section style="padding-top:0"><div class="wrap"><h2>Nosso trabalho</h2><p class="sub">Um pouco do dia a dia.</p><div class="gal">${ph.slice(1).map(u=>`<img src="${u}" alt="">`).join("")}</div></div></section>`:""}
-<section class="why"><div class="wrap"><h2>Por que escolher</h2><p class="sub">${esc(it.name)}</p><div class="grid">
-<div class="card"><span class="dot"></span><b>Atendimento próximo</b><span>Você fala direto com quem faz o trabalho.</span></div>
-<div class="card"><span class="dot"></span><b>Fácil de encontrar</b><span>Em ${esc(cid)}, com localização e contato à mão.</span></div>
-<div class="card"><span class="dot"></span><b>Resposta rápida</b><span>Tire as suas dúvidas pelo ${w?"WhatsApp":"telefone"}.</span></div></div></div></section>
-<section><div class="wrap ${map?"loc":""}"><div><h2>Onde estamos</h2><p class="sub">${esc(end||cid)}</p><p>Horários e informações: fale com a gente${it.phone?" pelo "+esc(it.phone):""}.</p>
+  const rate=o.nota?`<div class="rate"><b>★</b> ${esc(String(o.nota).replace(".",","))} no Google${o.aval?` · ${esc(o.aval)} avaliações`:""}</div>`:"";
+  const media=["elegante","acolhedor","clean"].includes(st)?`<div class="media" ${ph[0]?`style="--img:url(${ph[0]})"`:""}></div>`:"";
+  let n=0;const kick=t=>`<p class="kick" data-n="${String(++n).padStart(2,"0")}">${esc(t)}</p>`;
+  const title=st==="impacto"?esc(o.title).replace(/(\S+)$/,"<em>$1</em>"):esc(o.title);
+  const ex=L.extra;let extra="";
+  if(o.extra&&ex){
+    if(ex.type==="steps")extra=`<section><div class="wrap">${kick("Passo a passo")}<h2>${esc(ex.t)}</h2><p class="sub">${esc(ex.s)}</p><div class="steps">${ex.items.map(([a,b])=>`<div class="step"><h3>${esc(a)}</h3><p>${esc(b)}</p></div>`).join("")}</div></div></section>`;
+    else if(ex.type==="menu")extra=`<section><div class="wrap">${kick("Cardápio")}<h2>${esc(ex.t)}</h2><p class="sub">${esc(ex.s)}</p><div class="menu">${svc.map(s=>`<div class="mi">${esc(s)}<span>Peça pelo WhatsApp</span></div>`).join("")}</div></div></section>`;
+    else if(ex.type==="cta")extra=`<section><div class="wrap"><div class="ctab"><div><h2>${esc(ex.t)}</h2><p>${esc(ex.txt)}</p></div><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></div></section>`;
+  }
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(it.name)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?${PV_FONTS[st]}&display=swap" rel="stylesheet">
+<style>:root{--a:${o.cor};${pvVars(o.cor)}}${pvCSS(st)}</style></head><body class="s-${st}">
+<header><div class="wrap"><div class="brand">${logo?`<img src="${logo}" alt="${esc(it.name)}">`:`<span class="mono">${esc(ini)}</span>${esc(it.name)}`}</div>
+<nav><a href="#servicos">Serviços</a><a href="#local">Onde estamos</a><a href="#duvidas">Dúvidas</a></nav><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></header>
+<div class="hero${ph[0]&&!media?" ph":""}" ${ph[0]&&!media?`style="--img:url(${ph[0]})"`:""}><div class="wrap"><div><span class="tag">${esc(it.cat||"")}${it.cat?" em ":""}${esc(cid)}</span><h1>${title}</h1><p class="lead">${esc(o.sub)}</p>
+<div class="row"><a class="btn" href="${ctaHref}">${ctaTxt}</a><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${mapsQ}">Como chegar</a></div>${rate}</div>${st!=="clean"?media:""}</div>${st==="clean"?`<div class="wrap">${media}</div>`:""}</div>
+${svc.length&&!(o.extra&&ex&&ex.type==="menu")?`<section id="servicos"><div class="wrap">${kick("Serviços")}<h2>O que você encontra aqui</h2><p class="sub">Fale com a gente para saber mais sobre cada um.</p><div class="grid">${svc.map((s,i)=>`<div class="card"><span class="ic">${i+1}</span><h3>${esc(s)}</h3><p>Chame no WhatsApp para saber mais.</p></div>`).join("")}</div></div></section>`:`<span id="servicos"></span>`}
+${extra}
+${ph.length>1?`<section><div class="wrap">${kick("Nosso trabalho")}<h2>Um pouco do dia a dia</h2><p class="sub">${esc(it.name)}</p><div class="gal">${ph.slice(1).map(u=>`<img src="${u}" alt="">`).join("")}</div></div></section>`:""}
+${o.faq?`<section id="duvidas"><div class="wrap">${kick("Dúvidas")}<h2>Perguntas frequentes</h2><p class="sub">Não achou a resposta? Chame no WhatsApp.</p>${L.faq.map(([q,a],i)=>`<details${i===0?" open":""}><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div></section>`:""}
+<section id="local"><div class="wrap ${map?"loc":""}"><div>${kick("Onde estamos")}<h2>Venha nos visitar</h2><ul class="info" style="margin-top:20px">
+${end?`<li><b>Endereço</b>${esc(end)}</li>`:`<li><b>Cidade</b>${esc(cid)}</li>`}${o.horas?`<li><b>Horários</b>${esc(o.horas)}</li>`:""}${it.phone?`<li><b>Contato</b>${esc(it.phone)}</li>`:""}</ul>
 <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${mapsQ}">Abrir no mapa</a></div>${map}</div></section>
-<section class="cta"><div class="wrap"><h2>Vamos conversar?</h2><p class="sub">Atendimento rápido, sem complicação.</p><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></section>
+<section class="final"><div class="wrap"><h2>Vamos conversar?</h2><p class="sub">Atendimento rápido, sem complicação.</p><a class="btn" href="${ctaHref}">${ctaTxt}</a></div></section>
 <footer>© ${esc(it.name)}</footer>
 <div class="demo">Prévia criada pela <b>TRUZAV</b> · textos de exemplo</div>
 ${img?`<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>`:""}
@@ -943,41 +1032,54 @@ function openPreview(id){pvId=id;previewEditor();$("#pm").hidden=false;$("#drawe
 function closePreview(){$("#pm").hidden=true;document.body.classList.remove("pmopen");const id=pvId;pvId=null;if(id)openItem(id)}
 function dl(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 const slug=t=>norm(t).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const readImg=(f,max)=>new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL(f.type==="image/png"?"image/png":"image/jpeg",.84))};im.src=r.result};r.readAsDataURL(f)});
 function previewEditor(){
-  const it=byId(pvId),pm=$("#pm");if(!it)return;const o=pvOpts(it);pm.replaceChildren();
+  const it=byId(pvId),pm=$("#pm");if(!it)return;const o=pvOpts(it),seg=segOf(it);pm.replaceChildren();
   const side=el("aside","pmside"),main=el("div","pmmain pvmain");
   const top=el("div","pmtop"),x=el("button","b","Voltar ao negócio");x.onclick=closePreview;top.append(el("h2",0,"Prévia do site: "+it.name),x);side.append(top);
-  const save=()=>{it.prev={title:ti.value,sub:su.value,svc:sv.value,cor:co.value,map:mp?mp.checked:false};persist()};
-  const fld=(lab,node)=>{const w=el("div","field"),l=el("label",0,lab);l.htmlFor=node.id;w.append(l,node);side.append(w);return node};
-  const ti=el("input","t");ti.id="v-ti";ti.value=o.title;fld("Título",ti);
-  const su=el("textarea","t");su.id="v-su";su.value=o.sub;su.style.minHeight="70px";fld("Frase de abertura",su);
-  const sv=el("textarea","t");sv.id="v-sv";sv.value=o.svc;sv.style.minHeight="110px";fld("Serviços (um por linha)",sv);
-  const co=el("input","t");co.id="v-co";co.type="color";co.value=o.cor;co.style.height="44px";co.style.padding="4px";fld("Cor principal",co);
-  const fi=el("input","t");fi.id="v-fi";fi.type="file";fi.accept="image/*";fi.multiple=true;fld("Fotos (opcional, até 6)",fi);
-  const fh=el("p","muted",(pvPhotos[it.id]||[]).length?`${pvPhotos[it.id].length} foto(s) carregada(s). A primeira vai no topo.`:"A primeira foto vai no topo. As fotos não ficam salvas depois que você fecha a ferramenta.");fh.style.cssText="font-size:13px;margin:-6px 0 12px";side.append(fh);
-  let mp=null;if(it.lat!=null){const l=el("label","chk");mp=el("input");mp.type="checkbox";mp.checked=!!o.map;l.append(mp,document.createTextNode(" Mostrar mapa da localização"));l.style.margin="0 0 14px";side.append(l)}
+  const st=o;const save=()=>{it.prev={style:st.style,title:ti.value,sub:su.value,svc:sv.value,cor:co.value,map:mp?mp.checked:false,extra:xe.checked,faq:xf.checked,nota:nt.value.trim(),aval:av.value.trim(),horas:hr.value.trim()};persist()};
+  const grp=t=>{const g=el("div","pvg");g.append(el("h3",0,t));side.append(g);return g};
+  const fld=(g,lab,node,hint)=>{const w=el("div","field"),l=el("label",0,lab);l.htmlFor=node.id;w.append(l,node);if(hint)w.append(el("small","hint",hint));g.append(w);return node};
+  const g1=grp("Visual");const sc=el("div","chips");
+  Object.entries(PV_STYLES).forEach(([k,l])=>{const b=el("button","chip",l);b.type="button";b.setAttribute("aria-pressed",k===st.style);b.onclick=()=>{st.style=k;sc.querySelectorAll(".chip").forEach(z=>z.setAttribute("aria-pressed",z===b));render(true)};sc.append(b)});
+  g1.append(sc);
+  const co=el("input","t");co.id="v-co";co.type="color";co.value=o.cor;co.style.cssText="height:44px;padding:4px";fld(g1,"Cor principal",co,"Ao enviar a logo, a cor dela é usada sozinha.");
+  const lg=el("input","t");lg.id="v-lg";lg.type="file";lg.accept="image/*";fld(g1,"Logo (opcional)",lg,pvLogo[it.id]?"Logo carregada.":"PNG com fundo transparente fica melhor.");
+  const fi=el("input","t");fi.id="v-fi";fi.type="file";fi.accept="image/*";fi.multiple=true;const fh=fld(g1,"Fotos (opcional, até 6)",fi,(pvPhotos[it.id]||[]).length?`${pvPhotos[it.id].length} foto(s). A primeira vai no topo.`:"A primeira vai no topo. Fotos e logo não ficam salvas ao fechar a ferramenta.");
+  const g2=grp("Textos");
+  const ti=el("input","t");ti.id="v-ti";ti.value=o.title;fld(g2,"Título",ti);
+  const su=el("textarea","t");su.id="v-su";su.value=o.sub;su.style.minHeight="64px";fld(g2,"Frase de abertura",su);
+  const rs=el("button","b ghost","Outra frase de abertura");rs.type="button";rs.style.cssText="padding:0;height:auto;margin:-4px 0 10px";rs.onclick=()=>{const L=PV_LIB[seg].subs,i=(L.indexOf(su.value)+1)%L.length;su.value=L[i];render()};g2.append(rs);
+  const sv=el("textarea","t");sv.id="v-sv";sv.value=o.svc;sv.style.minHeight="96px";fld(g2,PV_LIB[seg].extra.type==="menu"?"Itens do cardápio (um por linha)":"Serviços (um por linha)",sv);
+  const g3=grp("Dados reais do negócio");
+  const r2=el("div","row2");const nt=el("input","t");nt.id="v-nt";nt.placeholder="Nota, ex.: 4,8";nt.value=o.nota;nt.setAttribute("aria-label","Nota no Google");const av=el("input","t");av.id="v-av";av.placeholder="Nº de avaliações";av.value=o.aval;av.setAttribute("aria-label","Número de avaliações");r2.append(nt,av);
+  const rw=el("div","field");rw.append(el("label",0,"Nota no Google"),r2,el("small","hint","Copie do perfil no Google Maps. Aparece no topo do site."));g3.append(rw);
+  const hr=el("input","t");hr.id="v-hr";hr.value=o.horas;hr.placeholder="Ex.: Ter a dom, 18h30 às 23h";fld(g3,"Horário de funcionamento",hr);
+  const g4=grp("Seções");const ck=(lab,v)=>{const l=el("label","chk"),i=el("input");i.type="checkbox";i.checked=v;l.append(i,document.createTextNode(" "+lab));l.style.margin="0 0 8px";g4.append(l);return i};
+  const xe=ck(PV_LIB[seg].extra.t,!!o.extra),xf=ck("Perguntas frequentes",!!o.faq);let mp=null;if(it.lat!=null)mp=ck("Mapa da localização",!!o.map);
   const tg=el("div","chips");[["m","Celular"],["d","Computador"]].forEach(([k,lab])=>{const b=el("button","chip",lab);b.type="button";b.setAttribute("aria-pressed",pvDev===k);b.onclick=()=>{pvDev=k;previewEditor()};tg.append(b)});
   const acts=el("div","pmacts");
   const bi=el("button","b main","Baixar imagem para WhatsApp"),bh=el("button","b","Baixar HTML"),bo=el("button","b","Abrir em nova aba");
   acts.append(bi,bh,bo);side.append(acts);
-  const note=el("p","muted","Os textos são exemplos do ramo. Revise antes de enviar e deixe claro na mensagem que é uma prévia.");note.style.cssText="font-size:13px;margin-top:12px";side.append(note);
+  side.append(Object.assign(el("p","muted","Os textos são exemplos do ramo. Revise antes de enviar e deixe claro na mensagem que é uma prévia."),{style:"font-size:13px;margin-top:12px"}));
   const frame=el("iframe","pvframe"+(pvDev==="m"?" m":""));frame.title="Prévia do site";
   main.append(tg,frame);pm.append(side,main);
-  let tm;const render=()=>{clearTimeout(tm);tm=setTimeout(()=>{save();frame.srcdoc=previewHTML(it,pvOpts(it),false)},250)};
-  [ti,su,sv,co].forEach(n=>n.oninput=render);if(mp)mp.onchange=render;
-  fi.onchange=async()=>{const fs=[...fi.files].slice(0,6);if(!fs.length)return;fh.textContent="Preparando as fotos…";
-    pvPhotos[it.id]=await Promise.all(fs.map(f=>new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.82))};im.src=r.result};r.readAsDataURL(f)})));
-    fh.textContent=`${pvPhotos[it.id].length} foto(s) carregada(s). A primeira vai no topo.`;render()};
+  let tm;const render=now=>{clearTimeout(tm);tm=setTimeout(()=>{save();frame.srcdoc=previewHTML(it,pvOpts(it),false)},now?0:250)};
+  [ti,su,sv,co,nt,av,hr].forEach(n=>n.oninput=()=>render());[xe,xf].concat(mp?[mp]:[]).forEach(n=>n.onchange=()=>render(true));
+  lg.onchange=async()=>{const f=lg.files[0];if(!f)return;pvLogo[it.id]=await readImg(f,600);const c=await colorFrom(pvLogo[it.id]);if(c){co.value=c}render(true);toast(c?"Logo carregada. A cor principal agora vem dela.":"Logo carregada.")};
+  fi.onchange=async()=>{const fs=[...fi.files].slice(0,6);if(!fs.length)return;pvPhotos[it.id]=await Promise.all(fs.map(f=>readImg(f,1400)));
+    if(!pvLogo[it.id]){const c=await colorFrom(pvPhotos[it.id][0]);if(c)co.value=c}fh.closest(".field").querySelector(".hint").textContent=`${pvPhotos[it.id].length} foto(s). A primeira vai no topo.`;render(true)};
   const logP=()=>{if(!(it.hist||[]).some(e=>e.t==="nota"&&e.txt==="Prévia do site criada"&&dayOf(e.d)===today())){addLog(it,{t:"nota",txt:"Prévia do site criada"});persist()}};
   bh.onclick=()=>{save();dl(`previa-${slug(it.name)}.html`,new Blob([previewHTML(it,pvOpts(it),false)],{type:"text/html"}));logP();toast("Prévia baixada em HTML.")};
   bo.onclick=()=>{save();const u=URL.createObjectURL(new Blob([previewHTML(it,pvOpts(it),false)],{type:"text/html"}));window.open(u,"_blank");setTimeout(()=>URL.revokeObjectURL(u),60000)};
   bi.onclick=()=>{save();bi.disabled=true;bi.textContent="Gerando a imagem…";
     const f=document.createElement("iframe");f.style.cssText="position:fixed;left:-9999px;top:0;width:390px;height:844px;border:0";document.body.append(f);
-    const done=(ok,msg)=>{f.remove();bi.disabled=false;bi.textContent="Baixar imagem para WhatsApp";toast(msg)};
-    f.onload=()=>{const w2=f.contentWindow;let n=0;const wait=setInterval(async()=>{n++;if(w2.html2canvas){clearInterval(wait);try{await w2.document.fonts.ready;w2.document.querySelector(".demo").style.cssText="position:static;transform:none;display:block;width:max-content;margin:0 auto 28px";
-        const cv=await w2.html2canvas(w2.document.body,{scale:2,width:390,windowWidth:390,backgroundColor:"#fbfaf8",useCORS:true});
-        cv.toBlob(b=>{dl(`previa-${slug(it.name)}.png`,b);logP();done(true,"Imagem baixada. Envie no WhatsApp junto com a mensagem.")},"image/png")}catch(e){done(false,"Não consegui gerar a imagem. Use “Abrir em nova aba” e tire um print.")}}
-      else if(n>40){clearInterval(wait);done(false,"Não consegui gerar a imagem sem internet. Use “Abrir em nova aba” e tire um print.")}},150)};
+    const done=msg=>{f.remove();bi.disabled=false;bi.textContent="Baixar imagem para WhatsApp";toast(msg)};
+    f.onload=()=>{const w2=f.contentWindow;let k=0;const wait=setInterval(async()=>{k++;if(w2.html2canvas){clearInterval(wait);try{await w2.document.fonts.ready;
+        w2.document.querySelector(".demo").style.cssText="position:static;transform:none;display:block;width:max-content;margin:0 auto 28px";w2.document.querySelector("header").style.position="relative";
+        const cv=await w2.html2canvas(w2.document.body,{scale:2,width:390,windowWidth:390,backgroundColor:getComputedStyle(w2.document.body).backgroundColor,useCORS:true});
+        cv.toBlob(b=>{dl(`previa-${slug(it.name)}.png`,b);logP();done("Imagem baixada. Envie no WhatsApp junto com a mensagem.")},"image/png")}catch(e){done("Não consegui gerar a imagem. Use “Abrir em nova aba” e tire um print.")}}
+      else if(k>40){clearInterval(wait);done("Não consegui gerar a imagem sem internet. Use “Abrir em nova aba” e tire um print.")}},150)};
     f.srcdoc=previewHTML(it,pvOpts(it),true)};
   frame.srcdoc=previewHTML(it,o,false);
 }
