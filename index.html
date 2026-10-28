@@ -504,7 +504,7 @@ function issueOf(it){
   else if(/^Só/.test(it.tipo))o={score:50,label:it.tipo,frase:it.tipo==="Só link do WhatsApp"?`Vi que o perfil ${deArt(it.name)} no Google leva direto para o WhatsApp, sem um lugar para conhecer o trabalho de vocês antes de chamar.`:`Vi que hoje vocês estão só no ${it.tipo.replace("Só ","")}, e o perfil no Google não leva para um site.`,q:"Posso mostrar como ficaria um site para vocês?"};
   else if(it.tipo==="Site de construtor gratuito")o={score:45,label:"Site em plataforma gratuita",frase:"Vi que o site de vocês está numa plataforma gratuita, sem endereço próprio.",q:"Posso mostrar como ficaria com o nome de vocês, tipo seunome.com.br?"};
   else o={score:40,label:it.tipo||"",frase:`Vi o perfil ${deArt(it.name)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá.`,q:"Com quem eu posso falar sobre isso?"};
-  if(it.detalhe&&it.detalhe.trim()){o.frase=it.detalhe.trim();o.q=o.q||"Posso mostrar como ficaria?";o.custom=true}
+  if(it.detalhe&&it.detalhe.trim()){o.frase=it.detalhe.trim();o.q=/\?\s*$/.test(o.frase)?"":(o.q||"Posso mostrar como ficaria?");o.custom=true}
   return o;
 }
 const heatOf=it=>{const s=issueOf(it).score;return s>=80?["q","Quente"]:s>=50?["m","Morno"]:["f","Frio"]};
@@ -1053,7 +1053,12 @@ $("#newBtn").onclick=newForm;$("#findBtn").onclick=findForm;$("#scrim").onclick=
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#pm").hidden){pvId?closePreview():closeProposal();return}if(e.key==="Escape"){if(placing){placing=null;$("#placing")?.remove()}else closeDrawer()}});
 $("#exp").onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`truzav-prospeccao-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Backup exportado.")};
 $("#impBtn").onclick=()=>$("#imp").click();
-$("#imp").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;data=d;persist();fitted=false;closeDrawer();renderAll();toast(`Backup importado: ${d.items.length} negócios.`)}catch(x){toast("Esse arquivo não é um backup desta ferramenta.")}e.target.value=""};r.readAsText(f)};
+$("#imp").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);
+  if(Array.isArray(d.leads)){let add=0,skip=0;d.leads.forEach((l,i)=>{if(!l||!l.name||dup(l.name)){skip++;return}
+      data.items.push(Object.assign({city:"Viamão",notes:"",provas:[]},l,{id:"c"+Date.now()+i,status:"new",order:Date.now()+i,hist:[{id:uid(),d:now(),t:"add",txt:"arquivo de leads"}]}));add++});
+    persist();fitted=false;closeDrawer();renderAll();toast(`${add} lead${add===1?"":"s"} adicionado${add===1?"":"s"} em “A contatar”${skip?`. ${skip} já estava${skip===1?"":"m"} no funil`:""}.`)}
+  else if(Array.isArray(d.items)){data=d;persist();fitted=false;closeDrawer();renderAll();toast(`Backup importado: ${d.items.length} negócios.`)}
+  else throw 0}catch(x){toast("Esse arquivo não é um backup nem uma lista de leads desta ferramenta.")}e.target.value=""};r.readAsText(f)};
 renderAll();
 })();
 </script>
