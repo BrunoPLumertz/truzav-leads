@@ -4,6 +4,10 @@ Ferramenta interna da TRUZAV para prospectar clientes: funil em quadro (kanban),
 
 É um site estático (`index.html`) com uma função pequena em `api/maps.js`, sem etapa de build.
 
+## Função `api/check.js`
+
+Verifica o site de um lead: se abre, se tem erro de segurança (certificado), se tem cadeado (https) e se tem botão de WhatsApp. O resultado define a situação do site e a temperatura do lead. Só acessa endereços públicos e lê no máximo 300 KB de cada página.
+
 ## Função `api/maps.js`
 
 Abre links curtos do Google Maps (`maps.app.goo.gl`) e devolve o endereço completo, de onde a ferramenta tira nome e localização do negócio. Não usa API do Google nem chave: só segue os redirecionamentos do link. Aceita apenas links do Google.

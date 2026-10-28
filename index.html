@@ -266,6 +266,20 @@ body.pmopen{overflow:hidden}
 .pvmain{display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--surf2)}
 .pvframe{width:100%;max-width:1100px;flex:1;min-height:600px;border:1px solid var(--line);border-radius:4px;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.15)}
 .pvframe.m{width:390px;max-width:100%;border-radius:22px;border:8px solid #111}
+
+.dtabs{display:flex;gap:2px;padding:0 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surf);z-index:2}
+.dtab{all:unset;cursor:pointer;padding:12px 10px 10px;font:600 14px Sora,Inter,sans-serif;color:var(--soft);border-bottom:3px solid transparent;margin-bottom:-1px}
+.dtab[aria-selected="true"]{color:var(--ink);border-color:var(--laranja)}
+.dtab:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.heat{display:inline-block;font:600 11px Inter,sans-serif;border-radius:3px;padding:1px 6px;margin:0 6px 4px 0;vertical-align:middle}
+.dh .heat{margin:10px 8px 0 0;font-size:12px;padding:2px 8px}
+.h-q{background:var(--laranja);color:#111}
+.h-m{background:color-mix(in srgb,var(--mark,#E2B04A) 30%,transparent);color:var(--ink);border:1px solid color-mix(in srgb,#E2B04A 60%,transparent)}
+.h-f{background:transparent;color:var(--soft);border:1px solid var(--line)}
+.links{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}.links a{font-size:13px;font-weight:500;color:var(--ot)}
+.hint{font-size:12px;color:var(--soft)}
+.row2{display:flex;gap:8px;align-items:stretch}.row2 .t{flex:1}.row2 .b{flex:none}
+.fixst{margin-top:10px;font-size:14px;color:var(--soft)}.fixst summary{cursor:pointer;padding:6px 0}.fixst select{margin-top:6px}
 </style>
 </head>
 <body>
@@ -311,8 +325,8 @@ const KEY="prospeccao-viamao-v1",DAY_GOAL=10;
 const ST=[["new","A contatar"],["previa","Aguardando resposta"],["conv","Conversando"],["prop","Proposta enviada"],["won","Fechado"],["lost","Não quis"]];
 const LBL=Object.fromEntries(ST);
 const NEXT={new:[["previa","Já entrei em contato",1]],previa:[["conv","Respondeu",1],["lost","Não quis",0]],conv:[["prop","Enviei a proposta",1],["lost","Não quis",0]],prop:[["won","Fechou negócio",1],["lost","Não quis",0]],won:[],lost:[["new","Tentar de novo",0]]};
-const TIPOS=["Sem site","Só Instagram","Só Facebook","Só link do WhatsApp","Site fraco ou desatualizado","Site de construtor gratuito","Outro"];
-const TCOL=t=>t==="Sem site"?"--t-none":/^Só/.test(t||"")?"--t-social":"--t-weak";
+const TIPOS=["Sem site","Site fora do ar","Site com erro de segurança","Só Instagram","Só Facebook","Só link do WhatsApp","Site fraco ou desatualizado","Site de construtor gratuito","Outro"];
+const TCOL=t=>t==="Sem site"||/fora do ar|erro de seguran/.test(t||"")?"--t-none":/^Só/.test(t||"")?"--t-social":"--t-weak";
 const SEED=[
 ["p01","Barbearia Ditonne","Barbearia","Sem site","+55 51 3046-3092",-30.0895319,-51.0883992],
 ["p02","Caroline Osório Doceria","Confeitaria e café","Sem site","+55 51 98928-0213",-30.0779921,-51.0493987],
@@ -401,7 +415,7 @@ function head(){
 function board(){
   const b=$("#board");b.replaceChildren();const v=visible();
   ST.forEach(([s,l])=>{
-    const its=v.filter(i=>i.status===s).sort((a,c)=>a.order-c.order),sum=its.reduce((a,i)=>a+(+i.valor||0),0);
+    const its=v.filter(i=>i.status===s).sort((a,c)=>s==="new"?(issueOf(c).score-issueOf(a).score)||(a.order-c.order):a.order-c.order),sum=its.reduce((a,i)=>a+(+i.valor||0),0);
     const col=el("section","col");col.style.setProperty("--c",`var(--s-${s})`);col.setAttribute("aria-label",l);
     const h=el("div","colh");h.append(el("h2",0,l),el("p","num",`${its.length} • ${money(sum)}`));col.append(h);
     const body=el("div","colb");
@@ -409,6 +423,7 @@ function board(){
       const c=el("div","card");c.tabIndex=0;c.setAttribute("role","button");c.setAttribute("aria-label",`${it.name}. Abrir detalhes`);c.draggable=true;
       const m=el("div","cm");m.append(el("strong",0,it.name),el("small",0,it.cat||""));
       if(+it.valor)m.append(el("span","val num",money(+it.valor)));
+      if(["new","previa","conv"].includes(s)){const [hk,hl]=heatOf(it),hb=el("span","heat h-"+hk,hl);hb.title=issueOf(it).label;m.prepend(hb)}
       if(it.tipo&&(s==="new"||!+it.valor))m.append(tag(it.tipo));
       c.append(m,actBtn(it));
       c.onclick=()=>openItem(it.id);c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openItem(it.id)}};
@@ -457,83 +472,152 @@ function markers(){
 }
 function showDrawer(){$("#drawer").hidden=false;$("#scrim").hidden=false}
 function closeDrawer(){openId=null;$("#drawer").hidden=true;$("#scrim").hidden=true;if(view==="map")markers()}
-function openItem(id){openId=id;confirmDel=false;drawer();if(view==="map")markers()}
+function openItem(id){if(openId!==id)dTab="contato";openId=id;confirmDel=false;drawer();if(view==="map")markers()}
 function startPlacing(it){placing=it.id;setView("map");$("#drawer").hidden=true;$("#scrim").hidden=true;$("#placing")?.remove();const p=el("div","placing","Clique no mapa onde fica "+it.name);p.id="placing";$("#map").append(p)}
+/* ===== Caçador: site, temperatura e detalhe ===== */
+const SOCIAL=/(^|\.)(instagram\.com|facebook\.com|fb\.com|fb\.me|linktr\.ee|wa\.me|whatsapp\.com)$/i;
+const hostOf=u=>{try{return new URL(/^https?:/i.test(u)?u:"https://"+u).hostname.replace(/^www\./,"")}catch(e){return ""}};
+const normUrl=u=>{u=(u||"").trim();return !u?"":/^https?:\/\//i.test(u)?u:"https://"+u};
+async function checkSite(it,quiet){
+  const url=normUrl(it.site);if(!url){if(!quiet)toast("Preencha o site ou o Instagram primeiro.");return}
+  const h=hostOf(url);
+  if(SOCIAL.test(h)){const tipo=/instagram/.test(h)?"Só Instagram":/facebook|fb\./.test(h)?"Só Facebook":/wa\.me|whatsapp/.test(h)?"Só link do WhatsApp":"Outro";
+    update(it.id,{check:{d:now(),estado:"social",host:h},tipo});if(!quiet)toast(`É um link de rede social: marcado como “${tipo}”.`);return}
+  let r;try{r=await fetch("/api/check?u="+encodeURIComponent(url))}catch(e){r=null}
+  if(!r||!r.ok){if(!quiet)toast(location.protocol==="file:"?"A verificação de site funciona pela ferramenta na Vercel.":"Não consegui verificar o site agora. Tente de novo.");return}
+  const c=await r.json();c.d=now();c.host=h;
+  const tipo=c.estado==="fora"?"Site fora do ar":c.estado==="ssl"?"Site com erro de segurança":"Site fraco ou desatualizado";
+  update(it.id,{check:c,tipo});if(!quiet)toast(`Site verificado: ${issueOf(byId(it.id)).label.toLowerCase()}.`);
+}
+function issueOf(it){
+  const c=it.check||{},dom=c.host||hostOf(it.site)||"site";let o;
+  if(c.estado==="fora")o={score:100,label:"Site fora do ar",frase:`Fui ver o site de vocês pelo Google, mas o ${dom} não está abrindo: quem clica cai numa página de erro.`,q:"Querem que eu veja o que aconteceu?"};
+  else if(c.estado==="ssl")o={score:90,label:"Erro de segurança no site",frase:`O ${dom} está abrindo com aquele aviso de “Erro de privacidade” do navegador, que assusta quem chega pelo Google. Costuma ser algo simples de resolver.`,q:"Querem que eu explique o que é?"};
+  else if((it.provas||[]).length)o={score:80,label:"Cliente reclamou de contato",frase:"Vi no Google um cliente comentando que teve dificuldade para falar com vocês.",q:"Posso mostrar como um site resolveria isso?"};
+  else if(c.estado==="lento"||c.estado==="erro")o={score:75,label:"Site com problema",frase:`Tentei abrir o ${dom} e ele não carregou direito.`,q:"Querem que eu veja o que está acontecendo?"};
+  else if(c.estado==="ok"&&c.https===false)o={score:70,label:"Site sem cadeado",frase:`O ${dom} aparece como “Não seguro” no navegador, o que afasta quem chega pelo Google.`,q:"Querem que eu explique como resolver?"};
+  else if(c.estado==="ok"&&!c.whatsapp)o={score:55,label:"Site sem WhatsApp",frase:"Vi o site de vocês e senti falta de um botão de WhatsApp: quem quer falar precisa procurar o número.",q:"Posso mostrar como ficaria?"};
+  else if(c.estado==="ok")o={score:15,label:"Site funcionando",frase:"",q:""};
+  else if(it.tipo==="Site fora do ar")o={score:100,label:"Site fora do ar",frase:"Fui ver o site de vocês pelo Google, mas ele não está abrindo: quem clica cai numa página de erro.",q:"Querem que eu veja o que aconteceu?"};
+  else if(it.tipo==="Site com erro de segurança")o={score:90,label:"Erro de segurança no site",frase:"O site de vocês está abrindo com um aviso de segurança do navegador, que assusta quem chega pelo Google.",q:"Querem que eu explique o que é?"};
+  else if(!it.tipo||it.tipo==="Sem site")o={score:60,label:"Sem site",frase:`Vi o perfil ${deArt(it.name)} no Google e senti falta de um site para mostrar o trabalho de vocês e facilitar o contato.`,q:"Posso mostrar como ficaria?"};
+  else if(/^Só/.test(it.tipo))o={score:50,label:it.tipo,frase:it.tipo==="Só link do WhatsApp"?`Vi que o perfil ${deArt(it.name)} no Google leva direto para o WhatsApp, sem um lugar para conhecer o trabalho de vocês antes de chamar.`:`Vi que hoje vocês estão só no ${it.tipo.replace("Só ","")}, e o perfil no Google não leva para um site.`,q:"Posso mostrar como ficaria um site para vocês?"};
+  else if(it.tipo==="Site de construtor gratuito")o={score:45,label:"Site em plataforma gratuita",frase:"Vi que o site de vocês está numa plataforma gratuita, sem endereço próprio.",q:"Posso mostrar como ficaria com o nome de vocês, tipo seunome.com.br?"};
+  else o={score:40,label:it.tipo||"",frase:`Vi o perfil ${deArt(it.name)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá.`,q:"Com quem eu posso falar sobre isso?"};
+  if(it.detalhe&&it.detalhe.trim()){o.frase=it.detalhe.trim();o.q=o.q||"Posso mostrar como ficaria?";o.custom=true}
+  return o;
+}
+const heatOf=it=>{const s=issueOf(it).score;return s>=80?["q","Quente"]:s>=50?["m","Morno"]:["f","Frio"]};
+let dTab="contato";
 function drawer(){
   const it=byId(openId),d=$("#drawer");if(!it){closeDrawer();return}
   d.replaceChildren();showDrawer();d.setAttribute("aria-label",it.name);
+  const iss=issueOf(it),[hk,hl]=heatOf(it),w=wa(it.phone);
   const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;
   dh.append(x,el("h2",0,it.name),el("p","muted",it.cat||""));
   const stg=el("span","stage");stg.style.setProperty("--c",`var(--s-${it.status})`);stg.append(el("span","dot"),document.createTextNode(LBL[it.status]));dh.append(stg);
+  if(["new","previa","conv"].includes(it.status)){const hb=el("span","heat h-"+hk,hl);hb.title=iss.label;dh.append(hb)}
   if(it.tipo)dh.append(tag(it.tipo));
-  if(it.maps){const ml=el("a","maplink","Ver no Google Maps");ml.href=it.maps;ml.target="_blank";ml.rel="noopener";dh.append(ml)}
+  const lk=el("div","links");
+  if(it.maps){const a=el("a",0,"Google Maps");a.href=it.maps;a.target="_blank";a.rel="noopener";lk.append(a)}
+  if(it.site){const a=el("a",0,hostOf(it.site));a.href=normUrl(it.site);a.target="_blank";a.rel="noopener";lk.append(a)}
+  if(lk.childNodes.length)dh.append(lk);
   if(waiting(it))dh.append(el("p","warn",`Sem resposta há ${days(lastAct(it))} dias. Mande um lembrete curto.`));
-  else if(it.contacted)dh.append(el("p","muted",`Primeiro contato em ${br(it.contacted)}.`));
   d.append(dh);
-  const s1=el("section","ds");s1.append(el("h3",0,"Próximo passo"));const a=el("div","acts"),w=wa(it.phone);
-  if(w){const l=el("a","b");l.href=w;l.target="_blank";l.rel="noopener";l.append(svg(IC.wa),document.createTextNode("WhatsApp"));a.append(l)}
-  if(it.phone){const l=el("a","b");l.href="tel:"+it.phone.replace(/[^\d+]/g,"");l.append(svg(IC.tel),document.createTextNode("Ligar"));a.append(l)}
-  NEXT[it.status].forEach(([to,lab,main])=>{const b=el("button","b"+(main?" main":""),lab);b.onclick=()=>move(it.id,to);a.append(b)});
-  s1.append(a);d.append(s1);
-  const sm=msgSection(it);if(sm)d.append(sm);
-  const sv2=el("section","ds");sv2.append(el("h3",0,"Provas para a proposta"));
-  const pv=it.provas||[];
-  if(!pv.length)sv2.append(el("p","muted","Comentários de clientes que mostram falta de site ou de contato. Eles entram na proposta, sem o nome de quem escreveu."));
-  pv.forEach(q=>{const bq=el("div","prova"),t=el("p",0,"“"+q.txt+"”"),m=el("small",0,q.fonte+" · ");const dl=el("button","del","remover");
-    dl.onclick=()=>{it.provas=it.provas.filter(z=>z.id!==q.id);update(it.id,{});toast("Prova removida.")};m.append(dl);bq.append(t,m);sv2.append(bq)});
-  const pf2=el("form","logf"),ptx=el("textarea","t full"),pfo=el("select","t"),pad=el("button","b","Adicionar prova");
-  ptx.placeholder="Cole o comentário, por exemplo uma avaliação do Google";ptx.setAttribute("aria-label","Comentário de cliente");FONTES.forEach(f=>pfo.append(el("option",0,f)));pfo.setAttribute("aria-label","Onde estava o comentário");pad.type="submit";
-  pf2.append(ptx,pfo,pad);pf2.onsubmit=e=>{e.preventDefault();const t=ptx.value.trim();if(!t)return;it.provas=[...(it.provas||[]),{id:uid(),txt:t,fonte:pfo.value,d:now()}];document.activeElement.blur();update(it.id,{});toast("Prova adicionada. Ela já entra na proposta.")};
-  sv2.append(pf2);d.append(sv2);
-  const spv=el("section","ds");spv.append(el("h3",0,"Prévia do site"),el("p","muted","Um site de demonstração com o nome, o ramo e a localização deste negócio, para mandar junto da apresentação."));
-  const pvb=el("button","b",it.prev?"Abrir prévia":"Montar prévia do site");pvb.style.marginTop="10px";pvb.onclick=()=>openPreview(it.id);spv.append(pvb);d.append(spv);
-  const sp=el("section","ds");sp.append(el("h3",0,"Proposta comercial"));
-  const lp=(it.hist||[]).filter(e=>e.t==="proposta").pop();
-  sp.append(el("p","muted",lp?`Última enviada em ${br(dayOf(lp.d))}: ${lp.tipo}, ${money(lp.valor)}. Ramo: ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n}.`:`Texto pronto para o ramo ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n.toLowerCase()}, ajustável antes de enviar.`));
-  const pb2=el("button","b"+(["conv","previa"].includes(it.status)?" main":""),it.prop?"Abrir proposta":"Montar proposta");pb2.style.marginTop="10px";pb2.onclick=()=>openProposal(it.id);sp.append(pb2);d.append(sp);
-  const sl=el("section","ds");sl.append(el("h3",0,"Registrar contato"));
-  const fm=el("form","logf"),cs=el("select","t"),cw=el("input","t"),cx=el("textarea","t full"),sb=el("button","b dark full","Registrar contato");
-  cs.setAttribute("aria-label","Canal");CANAIS.forEach(c=>cs.append(el("option",0,c)));if(!w&&it.phone)cs.value="Ligação";
-  cw.setAttribute("aria-label","Com quem falou");cw.placeholder="Com quem falou";cw.value=it.contato||"";
-  cx.setAttribute("aria-label","Resumo da conversa");cx.placeholder="Resumo: o que foi falado e o que ficou combinado";sb.type="submit";
-  fm.append(cs,cw,cx,sb);
-  fm.onsubmit=e=>{e.preventDefault();const com=cw.value.trim();addLog(it,{t:"contato",canal:cs.value,com,txt:cx.value.trim()});
-    const p={};if(com&&!it.contato)p.contato=com;if(!it.contacted)p.contacted=today();
-    if(it.status==="new"){p.status="previa";p.changed=today();addLog(it,{t:"status",from:"new",to:"previa"});toast(`Contato registrado. ${it.name} foi para “Aguardando resposta”.`)}else toast("Contato registrado no histórico.");
-    document.activeElement.blur();update(it.id,p)};
-  sl.append(fm);d.append(sl);
-  const sh=el("section","ds");sh.append(el("h3",0,"Histórico"));
-  const hs=(it.hist||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
-  if(!hs.length)sh.append(el("p","muted","Nada registrado ainda."));
-  else{const ul=el("ul","tl");hs.forEach(e=>{const li=el("li"),[t1,t2]=descr(e);
-    li.style.setProperty("--c",e.t==="status"?`var(--s-${e.to})`:e.t==="contato"?"var(--laranja)":"var(--areia)");
-    const tm=el("time",0,`${br(dayOf(e.d))} às ${hhmm(e.d)}`);tm.dateTime=e.d;li.append(tm,el("p",0,t1));if(t2)li.append(el("small",0,t2));
-    const del=el("button","del",confirmDel===e.id?"Clique de novo para apagar":"Apagar registro");
-    del.onclick=()=>{if(confirmDel!==e.id){confirmDel=e.id;drawer();return}it.hist=it.hist.filter(x=>x.id!==e.id);confirmDel=false;update(it.id,{})};
-    li.append(del);ul.append(li)});sh.append(ul)}
-  d.append(sh);
-  const s2=el("section","ds");s2.append(el("h3",0,"Anotações gerais"));
-  const ta=el("textarea","t");ta.setAttribute("aria-label","Anotações");ta.placeholder="O que foi conversado e qual o próximo passo";ta.value=it.notes||"";ta.oninput=()=>update(it.id,{notes:ta.value},true);s2.append(ta);d.append(s2);
-  const s3=el("section","ds");s3.append(el("h3",0,"Dados do negócio"));
-  const f=(lab,key,sel,type)=>{const w=el("div","field"),l=el("label",0,lab),i=sel?el("select","t"):el("input","t");l.htmlFor="f-"+key;i.id="f-"+key;
-    if(sel){sel.forEach(([v,t])=>{const o=el("option",0,t);o.value=v;o.selected=v===it[key];i.append(o)})}else{i.value=it[key]??"";if(type){i.type=type;i.min="0";i.step="0.01";i.inputMode="decimal"}}
-    i.onchange=()=>key==="status"?move(it.id,i.value):update(it.id,{[key]:type==="number"?(+i.value||0):i.value.trim()});w.append(l,i);s3.append(w)};
-  f("Nome","name");f("Categoria","cat");f("Telefone","phone");f("Pessoa de contato","contato");f("Valor da proposta (R$)","valor",null,"number");
-  const tl=TIPOS.includes(it.tipo)||!it.tipo?TIPOS:[it.tipo,...TIPOS];f("Situação do site","tipo",tl.map(t=>[t,t]));f("Etapa","status",ST);
-  const la=el("div","acts"),pb=el("button","b",it.lat==null?"Marcar no mapa":"Mudar local no mapa");pb.onclick=()=>startPlacing(it);
-  const del=el("button","b ghost danger",confirmDel===true?"Clique de novo para remover":"Remover da lista");
-  del.onclick=()=>{if(confirmDel!==true){confirmDel=true;drawer();return}data.items=data.items.filter(i=>i.id!==it.id);persist();closeDrawer();renderAll();toast(`${it.name} foi removido.`)};
-  la.append(pb,del);s3.append(la);d.append(s3);
+  const nH=(it.hist||[]).length;
+  const tabs=el("div","dtabs");tabs.setAttribute("role","tablist");
+  [["contato","Contato"],["proposta","Proposta"],["hist","Histórico"+(nH?` (${nH})`:"")],["dados","Dados"]].forEach(([k,l])=>{const b=el("button","dtab",l);b.setAttribute("role","tab");b.setAttribute("aria-selected",dTab===k);b.onclick=()=>{dTab=k;drawer()};tabs.append(b)});
+  d.append(tabs);
+  if(dTab==="contato"){
+    const s1=el("section","ds");s1.append(el("h3",0,"Próximo passo"));const a=el("div","acts");
+    if(w){const l=el("a","b");l.href=w;l.target="_blank";l.rel="noopener";l.append(svg(IC.wa),document.createTextNode("WhatsApp"));a.append(l)}
+    if(it.phone){const l=el("a","b");l.href="tel:"+it.phone.replace(/[^\d+]/g,"");l.append(svg(IC.tel),document.createTextNode("Ligar"));a.append(l)}
+    NEXT[it.status].forEach(([to,lab,main])=>{const b=el("button","b"+(main?" main":""),lab);b.onclick=()=>move(it.id,to);a.append(b)});
+    s1.append(a);
+    if(iss.label&&it.status==="new")s1.append(el("p","muted",`Por que está ${hl.toLowerCase()}: ${iss.custom?"detalhe que você anotou":iss.label.toLowerCase()}.`));
+    d.append(s1);
+    const sm=msgSection(it);if(sm)d.append(sm);
+    const sl=el("section","ds");sl.append(el("h3",0,"Registrar o que aconteceu"));
+    const fm=el("form"),ch=el("div","chips");let canal=w?"WhatsApp":it.phone?"Ligação":"WhatsApp";
+    ["WhatsApp","Ligação","Visita","Anotação"].forEach(c=>{const b=el("button","chip",c);b.type="button";b.setAttribute("aria-pressed",c===canal);b.onclick=()=>{canal=c;ch.querySelectorAll(".chip").forEach(z=>z.setAttribute("aria-pressed",z.textContent===c));cwf.hidden=c==="Anotação"};ch.append(b)});
+    const cwf=el("div","field"),cwl=el("label",0,"Com quem falou"),cw=el("input","t");cwl.htmlFor="r-com";cw.id="r-com";cw.value=it.contato||"";cw.placeholder="Ex.: Carla, dona";cwf.append(cwl,cw);
+    const cxf=el("div","field"),cxl=el("label",0,"O que foi falado"),cx=el("textarea","t");cxl.htmlFor="r-txt";cx.id="r-txt";cx.placeholder="Resumo e próximo passo combinado";cx.style.minHeight="80px";cxf.append(cxl,cx);
+    const sb=el("button","b dark","Registrar");sb.type="submit";sb.style.width="100%";
+    fm.append(ch,cwf,cxf,sb);
+    fm.onsubmit=e=>{e.preventDefault();const txt=cx.value.trim();
+      if(canal==="Anotação"){if(!txt){cx.focus();return}addLog(it,{t:"nota",txt});document.activeElement.blur();update(it.id,{});toast("Anotação salva no histórico.");return}
+      const com=cw.value.trim();addLog(it,{t:"contato",canal,com,txt});const p={};if(com&&!it.contato)p.contato=com;if(!it.contacted)p.contacted=today();
+      if(it.status==="new"){p.status="previa";p.changed=today();addLog(it,{t:"status",from:"new",to:"previa"});toast(`Contato registrado. ${it.name} foi para “Aguardando resposta”.`)}else toast("Contato registrado no histórico.");
+      document.activeElement.blur();update(it.id,p)};
+    sl.append(fm);d.append(sl);
+  }
+  if(dTab==="proposta"){
+    const sv2=el("section","ds");sv2.append(el("h3",0,"Provas"));
+    const pv=it.provas||[];
+    if(!pv.length)sv2.append(el("p","muted","Comentários de clientes que mostram falta de site ou de contato. Entram na proposta sem o nome de quem escreveu, e deixam o lead quente."));
+    pv.forEach(q=>{const bq=el("div","prova"),t=el("p",0,"“"+q.txt+"”"),m=el("small",0,q.fonte+" · ");const dl=el("button","del","remover");
+      dl.onclick=()=>{it.provas=it.provas.filter(z=>z.id!==q.id);update(it.id,{});toast("Prova removida.")};m.append(dl);bq.append(t,m);sv2.append(bq)});
+    const pf2=el("form"),pff=el("div","field"),pfl=el("label",0,"Novo comentário"),ptx=el("textarea","t"),pfo=el("select","t"),pad=el("button","b","Adicionar prova");
+    pfl.htmlFor="p-ptx";ptx.id="p-ptx";ptx.placeholder="Cole aqui, por exemplo, uma avaliação do Google";ptx.style.minHeight="70px";pff.append(pfl,ptx);
+    FONTES.forEach(f=>pfo.append(el("option",0,f)));pfo.setAttribute("aria-label","Onde estava o comentário");pad.type="submit";
+    const row=el("div","row2");row.append(pfo,pad);pf2.append(pff,row);
+    pf2.onsubmit=e=>{e.preventDefault();const t=ptx.value.trim();if(!t){ptx.focus();return}it.provas=[...(it.provas||[]),{id:uid(),txt:t,fonte:pfo.value,d:now()}];document.activeElement.blur();update(it.id,{});toast("Prova adicionada.")};
+    sv2.append(pf2);d.append(sv2);
+    const spv=el("section","ds");spv.append(el("h3",0,"Prévia do site"),el("p","muted","Um site de demonstração com o nome, o ramo e a localização, para mandar junto da apresentação."));
+    const pvb=el("button","b",it.prev?"Abrir prévia":"Montar prévia do site");pvb.style.marginTop="10px";pvb.onclick=()=>openPreview(it.id);spv.append(pvb);d.append(spv);
+    const sp=el("section","ds");sp.append(el("h3",0,"Proposta comercial"));
+    const lp=(it.hist||[]).filter(e=>e.t==="proposta").pop();
+    sp.append(el("p","muted",lp?`Última enviada em ${br(dayOf(lp.d))}: ${lp.tipo}, ${money(lp.valor)}.`:`Texto pronto para o ramo ${SEG[(it.prop&&it.prop.seg)||segOf(it)].n.toLowerCase()}. O valor você define dentro da proposta.`));
+    const pb2=el("button","b"+(["conv","previa"].includes(it.status)?" main":""),it.prop?"Abrir proposta":"Montar proposta");pb2.style.marginTop="10px";pb2.onclick=()=>openProposal(it.id);sp.append(pb2);d.append(sp);
+  }
+  if(dTab==="hist"){
+    const sh=el("section","ds");
+    const hs=(it.hist||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
+    if(!hs.length)sh.append(el("p","muted","Nada registrado ainda. Use “Registrar o que aconteceu”, na aba Contato."));
+    else{const ul=el("ul","tl");hs.forEach(e=>{const li=el("li"),[t1,t2]=descr(e);
+      li.style.setProperty("--c",e.t==="status"?`var(--s-${e.to})`:e.t==="contato"?"var(--laranja)":"var(--areia)");
+      const tm=el("time",0,`${br(dayOf(e.d))} às ${hhmm(e.d)}`);tm.dateTime=e.d;li.append(tm,el("p",0,t1));if(t2)li.append(el("small",0,t2));
+      const del=el("button","del",confirmDel===e.id?"Clique de novo para apagar":"Apagar registro");
+      del.onclick=()=>{if(confirmDel!==e.id){confirmDel=e.id;drawer();return}it.hist=it.hist.filter(x=>x.id!==e.id);confirmDel=false;update(it.id,{})};
+      li.append(del);ul.append(li)});sh.append(ul)}
+    d.append(sh);
+  }
+  if(dTab==="dados"){
+    const s3=el("section","ds");
+    const f=(lab,key,hint,ph)=>{const wf=el("div","field"),l=el("label",0,lab),i=el("input","t");l.htmlFor="f-"+key;i.id="f-"+key;i.value=it[key]??"";if(ph)i.placeholder=ph;
+      i.onchange=()=>update(it.id,{[key]:i.value.trim()});wf.append(l,i);if(hint)wf.append(el("small","hint",hint));s3.append(wf);return i};
+    f("Nome","name");f("Ramo","cat",0,"Ex.: barbearia");f("Telefone","phone");
+    f("Pessoa de contato","contato","Entra nas mensagens e na proposta.","Ex.: Carla");
+    const sf=el("div","field"),sl2=el("label",0,"Site ou Instagram"),srow=el("div","row2"),si=el("input","t"),sb2=el("button","b","Verificar");
+    sl2.htmlFor="f-site";si.id="f-site";si.value=it.site||"";si.placeholder="seusite.com.br ou link do Instagram";sb2.type="button";
+    si.onchange=()=>{update(it.id,{site:si.value.trim()},true)};sb2.onclick=async()=>{update(it.id,{site:si.value.trim()},true);sb2.disabled=true;sb2.textContent="Verificando…";await checkSite(byId(it.id));};
+    srow.append(si,sb2);sf.append(sl2,srow);
+    const ck=it.check;sf.append(el("small","hint",ck?`${iss.label}. Verificado em ${br(dayOf(ck.d))}${ck.titulo?`, título “${ck.titulo}”`:""}.`:"A ferramenta confere se o site abre, se tem cadeado e botão de WhatsApp."));
+    s3.append(sf);
+    const tf=el("div","field"),tl=el("label",0,"Situação do site"),ts=el("select","t");tl.htmlFor="f-tipo";ts.id="f-tipo";
+    (TIPOS.includes(it.tipo)||!it.tipo?TIPOS:[it.tipo,...TIPOS]).forEach(t=>{const o=el("option",0,t);o.selected=t===it.tipo;ts.append(o)});ts.onchange=()=>update(it.id,{tipo:ts.value});
+    tf.append(tl,ts,el("small","hint","Preenchida pela verificação. Ajuste só se estiver errada."));s3.append(tf);
+    const df=el("div","field"),dl2=el("label",0,"Detalhe para citar na primeira mensagem"),dt=el("textarea","t");dl2.htmlFor="f-det";dt.id="f-det";dt.value=it.detalhe||"";dt.style.minHeight="70px";
+    dt.placeholder=issueOf({...it,detalhe:""}).frase||"Algo real e específico: um produto, um horário, um erro.";dt.onchange=()=>update(it.id,{detalhe:dt.value.trim()});
+    df.append(dl2,dt,el("small","hint","Deixe vazio para usar o detalhe encontrado automaticamente."));s3.append(df);
+    const of=el("div","field"),ol=el("label",0,"Observações"),ot=el("textarea","t");ol.htmlFor="f-obs";ot.id="f-obs";ot.value=it.notes||"";ot.style.minHeight="60px";ot.oninput=()=>update(it.id,{notes:ot.value},true);of.append(ol,ot);s3.append(of);
+    const la=el("div","acts"),pb=el("button","b",it.lat==null?"Marcar no mapa":"Mudar local no mapa");pb.onclick=()=>startPlacing(it);la.append(pb);s3.append(la);
+    const fx=el("details","fixst"),fs=el("summary",0,"Corrigir etapa"),fsel=el("select","t");fsel.setAttribute("aria-label","Etapa");ST.forEach(([k,l])=>{const o=el("option",0,l);o.value=k;o.selected=k===it.status;fsel.append(o)});fsel.onchange=()=>move(it.id,fsel.value);fx.append(fs,fsel);s3.append(fx);
+    const del=el("button","b ghost danger",confirmDel===true?"Clique de novo para remover":"Remover da lista");del.style.marginTop="8px";
+    del.onclick=()=>{if(confirmDel!==true){confirmDel=true;drawer();return}data.items=data.items.filter(i=>i.id!==it.id);persist();closeDrawer();renderAll();toast(`${it.name} foi removido.`)};
+    s3.append(del);d.append(s3);
+  }
 }
+
 function newForm(){
   openId=null;const d=$("#drawer");d.replaceChildren();showDrawer();d.setAttribute("aria-label","Adicionar negócio");
   const dh=el("div","dh"),x=el("button","x","×");x.setAttribute("aria-label","Fechar");x.onclick=closeDrawer;dh.append(x,el("h2",0,"Adicionar negócio"),el("p","muted","Depois de adicionar, você marca o local no mapa."));d.append(dh);
   const fm=el("form","ds"),vals={};
-  [["Nome do negócio","name"],["Categoria","cat"],["Telefone","phone"]].forEach(([l,k])=>{const w=el("div","field"),lb=el("label",0,l),i=el("input","t");lb.htmlFor="n-"+k;i.id="n-"+k;if(k==="name")i.required=true;if(k==="phone")i.inputMode="tel";vals[k]=i;w.append(lb,i);fm.append(w)});
+  [["Nome do negócio","name"],["Ramo","cat"],["Telefone","phone"],["Site ou Instagram (se tiver)","site"]].forEach(([l,k])=>{const w=el("div","field"),lb=el("label",0,l),i=el("input","t");lb.htmlFor="n-"+k;i.id="n-"+k;if(k==="name")i.required=true;if(k==="phone")i.inputMode="tel";vals[k]=i;w.append(lb,i);fm.append(w)});
   const w=el("div","field"),lb=el("label",0,"Situação do site"),s=el("select","t");lb.htmlFor="n-tipo";s.id="n-tipo";TIPOS.forEach(t=>s.append(el("option",0,t)));w.append(lb,s);fm.append(w);
   const sb=el("button","b main","Adicionar e marcar no mapa");sb.type="submit";sb.style.width="100%";fm.append(sb);
-  fm.onsubmit=e=>{e.preventDefault();const it={id:"n"+Date.now(),name:vals.name.value.trim(),cat:vals.cat.value.trim(),phone:vals.phone.value.trim(),tipo:s.value,notes:"",status:"new",order:Date.now(),lat:null,lng:null};
-    if(!it.name)return;it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
+  fm.onsubmit=e=>{e.preventDefault();const it={id:"n"+Date.now(),name:vals.name.value.trim(),cat:vals.cat.value.trim(),phone:vals.phone.value.trim(),site:vals.site.value.trim(),tipo:vals.site.value.trim()?"Outro":s.value,notes:"",status:"new",order:Date.now(),lat:null,lng:null};
+    if(!it.name)return;it.hist=[{id:uid(),d:now(),t:"add"}];data.items.push(it);persist();renderAll();if(it.site)checkSite(it,true);startPlacing(it);toast(`${it.name} foi adicionado em “A contatar”.`)};
   d.append(fm);vals.name.focus();
 }
 /* ===== Propostas ===== */
@@ -587,7 +671,9 @@ const SEG={
   sug:["Textos pensados para quem procura esse serviço no Google","Avaliações de clientes em destaque","Formulário simples que já chega organizado no WhatsApp"]}};
 const SEG_ORDER=["pet","juridico","construcao","alimentacao","fitness","automotivo","imobiliaria","educacao","saude","beleza"];
 const segOf=it=>{const t=norm((it.cat||"")+" "+it.name);return SEG_ORDER.find(k=>SEG[k].k.some(w=>t.includes(norm(w))))||"geral"};
-const SITU={"Sem site":"Hoje, quem procura vocês no Google encontra só o perfil do mapa. Não existe um lugar para conhecer o trabalho com calma antes de entrar em contato.",
+const SITU={"Site fora do ar":"Hoje o site cadastrado no Google não abre. Quem clica no perfil encontra uma página de erro, e a impressão é de que o negócio fechou.",
+ "Site com erro de segurança":"Hoje o site abre com um aviso de segurança do navegador, e muita gente desiste antes de ver a página.",
+ "Sem site":"Hoje, quem procura vocês no Google encontra só o perfil do mapa. Não existe um lugar para conhecer o trabalho com calma antes de entrar em contato.",
  "Só Instagram":"Hoje a presença de vocês está no Instagram. Ele é ótimo para o dia a dia, mas aparece pouco no Google e as informações importantes se perdem entre as postagens.",
  "Só Facebook":"Hoje a presença de vocês está no Facebook. Ele aparece pouco nas buscas e as informações importantes se perdem entre as postagens.",
  "Só link do WhatsApp":"Hoje o perfil no Google leva direto para o WhatsApp. O contato é rápido, mas quem ainda está pesquisando não tem onde conhecer o seu trabalho antes de chamar.",
@@ -764,14 +850,16 @@ function findForm(){
       const n=fld("Nome","name",el("input","t"));n.value=P.name;n.required=true;
       const c=fld("Categoria","cat",el("input","t"));c.value=(TERMOS.find(t=>t[0]===gstate.termo)||[])[1]||"";
       const ph=fld("Telefone (copie do Google Maps)","phone",el("input","t"));ph.inputMode="tel";
+      const st=fld("Site ou Instagram (se tiver)","site",el("input","t"));st.placeholder="Deixe vazio se o perfil não mostrar site";
       const tp=fld("Situação do site","tipo",el("select","t"));TIPOS.forEach(t=>tp.append(el("option",0,t)));
+      st.oninput=()=>{tp.closest(".field").hidden=!!st.value.trim()};
       const pr=fld("Comentário de cliente (opcional)","prova",el("textarea","t"));pr.placeholder="Cole aqui uma avaliação que mostre a falta de site ou de contato";pr.style.minHeight="80px";
       fm.append(el("p","muted",P.lat!=null?"Local no mapa: encontrado pelo link.":"Local no mapa: não veio no link. Você pode marcar depois."));
       const ab=el("button","b main","Adicionar ao funil");ab.type="submit";ab.style.cssText="width:100%;margin-top:10px";fm.append(ab);
       fm.onsubmit=e=>{e.preventDefault();const nm=n.value.trim();if(!nm)return;if(dup(nm)){toast(`${nm} já está no funil.`);return}
-        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:ph.value.trim(),tipo:tp.value,lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
+        const it={id:"g"+Date.now(),name:nm,cat:c.value.trim(),phone:ph.value.trim(),site:st.value.trim(),tipo:st.value.trim()?"Outro":tp.value,lat:P.lat,lng:P.lng,maps:P.link,city:gstate.city,status:"new",order:Date.now(),notes:"",
           provas:pr.value.trim()?[{id:uid(),txt:pr.value.trim(),fonte:FONTES[0],d:now()}]:[],hist:[{id:uid(),d:now(),t:"add",txt:"Google Maps"}]};
-        data.items.push(it);persist();gstate.pend=null;gstate.err="";renderAll();findForm();toast(`${nm} foi adicionado em “A contatar”.`)};
+        data.items.push(it);persist();gstate.pend=null;gstate.err="";renderAll();findForm();toast(`${nm} foi adicionado em “A contatar”.`);if(it.site)checkSite(it,true)};
       s2.append(fm);
     }
   }
@@ -909,9 +997,9 @@ function msgs(it){
   const enviar=`${oi} Como combinamos, segue a proposta do site ${deArt(n)}.\n\nColoquei como está hoje, o que o site teria e algumas sugestões pensadas para o que vocês fazem.\n\nDá uma olhada com calma e me conta o que achou. Se quiser ajustar alguma coisa, a gente adapta.`;
   const enviarP=`${oi} Segue a proposta do site ${deArt(n)}.\n\nUma coisa me chamou atenção: no Google, ${prova}\n\nEstá tudo explicado no PDF. Qualquer dúvida, é só me chamar por aqui.`;
   const M={
-   new:[!pn&&["Descobrir quem decide",`${saud()}, tudo bem? Aqui é da TRUZAV, criamos sites para empresas da região.\n\nVi o perfil ${deArt(n)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá. Com quem eu posso falar sobre isso?`],
-        ["Primeiro contato com proposta",pn?`Oi, ${pn}, tudo bem? ${apres}\n\nVi o perfil ${deArt(n)} no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`:`Oi, pessoal ${deArt(n)}, tudo bem? ${apres}\n\nVi o perfil de vocês no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`],
-        hasP&&["Primeiro contato citando comentário",`${pn?`Oi, ${pn}, tudo bem?`:`Oi, pessoal ${deArt(n)}, tudo bem?`} ${apres}\n\nVi o perfil de vocês no Google e um comentário me chamou atenção: ${prova}\n\nPreparei uma proposta, sem compromisso. Posso te mandar?`]],
+   new:[(()=>{const I=issueOf(it);return I.frase?["Primeiro contato citando o detalhe",`${pn?`Oi, ${pn}, tudo bem?`:`${saud()}, tudo bem?`} Aqui é da TRUZAV, a gente cria sites para empresas da região.\n\n${I.frase}${I.q?" "+I.q:""}`]:null})(),
+        !pn&&["Descobrir quem decide",`${saud()}, tudo bem? Aqui é da TRUZAV, criamos sites para empresas da região.\n\nVi o perfil ${deArt(n)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá. Com quem eu posso falar sobre isso?`],
+        ["Primeiro contato com proposta",pn?`Oi, ${pn}, tudo bem? ${apres}\n\nVi o perfil ${deArt(n)} no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`:`Oi, pessoal ${deArt(n)}, tudo bem? ${apres}\n\nVi o perfil de vocês no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`]],
    previa:[["Lembrete",`${oi} Passando para saber se você viu minha mensagem. Se preferir, te explico em um áudio rápido.`],["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
    conv:[["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
    prop:[["Lembrete da proposta",`${oi} Conseguiu dar uma olhada na proposta? Se tiver alguma dúvida ou quiser ajustar algo, é só me dizer.`],
