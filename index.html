@@ -491,22 +491,26 @@ async function checkSite(it,quiet){
   const tipo=c.estado==="fora"?"Site fora do ar":c.estado==="ssl"?"Site com erro de segurança":"Site fraco ou desatualizado";
   update(it.id,{check:c,tipo});if(!quiet)toast(`Site verificado: ${issueOf(byId(it.id)).label.toLowerCase()}.`);
 }
+const DESTAQUE={fitness:"a aula experimental em destaque",beleza:"os serviços e o agendamento em destaque",pet:"o banho e tosa e o agendamento em destaque",alimentacao:"o cardápio e os pedidos em destaque",
+ automotivo:"o pedido de orçamento em destaque",saude:"as especialidades e o agendamento em destaque",juridico:"as áreas de atuação explicadas de um jeito simples",construcao:"os trabalhos já feitos em destaque",
+ imobiliaria:"os imóveis em destaque",educacao:"os cursos e a matrícula em destaque",geral:"os serviços e o contato em destaque"};
+const ideiaQ=it=>it.prev?"Fiz uma prévia rápida de como poderia ficar o site de vocês. Posso te mandar por aqui?":`Pensei num site com ${DESTAQUE[segOf(it)]} e o WhatsApp a um clique. Quer ver como ficaria?`;
 function issueOf(it){
   const c=it.check||{},dom=c.host||hostOf(it.site)||"site";let o;
   if(c.estado==="fora")o={score:100,label:"Site fora do ar",frase:`Fui ver o site de vocês pelo Google, mas o ${dom} não está abrindo: quem clica cai numa página de erro.`,q:"Querem que eu veja o que aconteceu?"};
   else if(c.estado==="ssl")o={score:90,label:"Erro de segurança no site",frase:`O ${dom} está abrindo com aquele aviso de “Erro de privacidade” do navegador, que assusta quem chega pelo Google. Costuma ser algo simples de resolver.`,q:"Querem que eu explique o que é?"};
-  else if((it.provas||[]).length)o={score:80,label:"Cliente reclamou de contato",frase:"Vi no Google um cliente comentando que teve dificuldade para falar com vocês.",q:"Posso mostrar como um site resolveria isso?"};
+  else if((it.provas||[]).length)o={score:80,label:"Cliente reclamou de contato",frase:"Vi no Google um cliente comentando que teve dificuldade para falar com vocês.",q:it.prev?"Fiz uma prévia de como um site resolveria isso. Posso te mandar por aqui?":"Quer ver como um site resolveria isso?"};
   else if(c.estado==="lento"||c.estado==="erro")o={score:75,label:"Site com problema",frase:`Tentei abrir o ${dom} e ele não carregou direito.`,q:"Querem que eu veja o que está acontecendo?"};
   else if(c.estado==="ok"&&c.https===false)o={score:70,label:"Site sem cadeado",frase:`O ${dom} aparece como “Não seguro” no navegador, o que afasta quem chega pelo Google.`,q:"Querem que eu explique como resolver?"};
-  else if(c.estado==="ok"&&!c.whatsapp)o={score:55,label:"Site sem WhatsApp",frase:"Vi o site de vocês e senti falta de um botão de WhatsApp: quem quer falar precisa procurar o número.",q:"Posso mostrar como ficaria?"};
+  else if(c.estado==="ok"&&!c.whatsapp)o={score:55,label:"Site sem WhatsApp",frase:"Vi o site de vocês e senti falta de um botão de WhatsApp: quem quer falar precisa procurar o número.",q:ideiaQ(it)};
   else if(c.estado==="ok")o={score:15,label:"Site funcionando",frase:"",q:""};
   else if(it.tipo==="Site fora do ar")o={score:100,label:"Site fora do ar",frase:"Fui ver o site de vocês pelo Google, mas ele não está abrindo: quem clica cai numa página de erro.",q:"Querem que eu veja o que aconteceu?"};
   else if(it.tipo==="Site com erro de segurança")o={score:90,label:"Erro de segurança no site",frase:"O site de vocês está abrindo com um aviso de segurança do navegador, que assusta quem chega pelo Google.",q:"Querem que eu explique o que é?"};
-  else if(!it.tipo||it.tipo==="Sem site")o={score:60,label:"Sem site",frase:`Vi o perfil ${deArt(it.name)} no Google e senti falta de um site para mostrar o trabalho de vocês e facilitar o contato.`,q:"Posso mostrar como ficaria?"};
-  else if(/^Só/.test(it.tipo))o={score:50,label:it.tipo,frase:it.tipo==="Só link do WhatsApp"?`Vi que o perfil ${deArt(it.name)} no Google leva direto para o WhatsApp, sem um lugar para conhecer o trabalho de vocês antes de chamar.`:`Vi que hoje vocês estão só no ${it.tipo.replace("Só ","")}, e o perfil no Google não leva para um site.`,q:"Posso mostrar como ficaria um site para vocês?"};
+  else if(!it.tipo||it.tipo==="Sem site")o={score:60,label:"Sem site",frase:`Vi o perfil ${deArt(it.name)} no Google e senti falta de um site para mostrar o trabalho de vocês e facilitar o contato.`,q:ideiaQ(it)};
+  else if(/^Só/.test(it.tipo))o={score:50,label:it.tipo,frase:it.tipo==="Só link do WhatsApp"?`Vi que o perfil ${deArt(it.name)} no Google leva direto para o WhatsApp, sem um lugar para conhecer o trabalho de vocês antes de chamar.`:`Vi que hoje vocês estão só no ${it.tipo.replace("Só ","")}, e o perfil no Google não leva para um site.`,q:ideiaQ(it)};
   else if(it.tipo==="Site de construtor gratuito")o={score:45,label:"Site em plataforma gratuita",frase:"Vi que o site de vocês está numa plataforma gratuita, sem endereço próprio.",q:"Posso mostrar como ficaria com o nome de vocês, tipo seunome.com.br?"};
-  else o={score:40,label:it.tipo||"",frase:`Vi o perfil ${deArt(it.name)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá.`,q:"Com quem eu posso falar sobre isso?"};
-  if(it.detalhe&&it.detalhe.trim()){o.frase=it.detalhe.trim();o.q=/\?\s*$/.test(o.frase)?"":(o.q||"Posso mostrar como ficaria?");o.custom=true}
+  else o={score:40,label:it.tipo||"",frase:`Vi o perfil ${deArt(it.name)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá.`,q:ideiaQ(it)};
+  if(it.detalhe&&it.detalhe.trim()){o.frase=it.detalhe.trim();o.q=/\?\s*$/.test(o.frase)?"":(o.q||ideiaQ(it));o.custom=true}
   return o;
 }
 const heatOf=it=>{const s=issueOf(it).score;return s>=80?["q","Quente"]:s>=50?["m","Morno"]:["f","Frio"]};
@@ -1089,7 +1093,7 @@ const saud=()=>{const h=new Date().getHours();return h<12?"Bom dia":h<18?"Boa ta
 const firstName=it=>((it.contato||"").split(/[,(\-–]/)[0].trim().split(/\s+/)[0]||"");
 const ART_M=["centro","studio","estudio","espaco","salao","restaurante","instituto","escritorio","consultorio","atelie","mercado","mercadinho","bar","cafe","pet","petshop","hotel","laboratorio","ct","clube","buffet","armazem","emporio","acougue","posto","brecho","grupo","auto","box","sitio"];
 const ART_F=["barbearia","clinica","padaria","confeitaria","doceria","academia","oficina","mecanica","loja","imobiliaria","construtora","escola","pizzaria","lanchonete","otica","farmacia","estetica","advocacia","contabilidade","floricultura","casa","distribuidora","agencia","autoescola","papelaria","livraria","sorveteria","hamburgueria","cafeteria","marmoraria","vidracaria","serralheria","borracharia","funilaria","lavanderia","ferragem","madeireira","creche","cervejaria","pastelaria","tabacaria","adega","boutique","otica"];
-const artOf=n=>{const w=norm(n).split(/[^a-z0-9]+/).filter(Boolean)[0]||"";return ART_M.includes(w)?"o":ART_F.includes(w)?"a":""};
+const artOf=n=>{for(const w of norm(n).split(/[^a-z0-9]+/).filter(Boolean)){if(ART_M.includes(w))return "o";if(ART_F.includes(w))return "a"}return ""};
 const deArt=n=>({o:"do ",a:"da "}[artOf(n)]||"de ")+n;
 const paraArt=n=>"para "+({o:"o ",a:"a "}[artOf(n)]||"")+n;
 function msgs(it){
@@ -1100,6 +1104,9 @@ function msgs(it){
   const enviarP=`${oi} Segue a proposta do site ${deArt(n)}.\n\nUma coisa me chamou atenção: no Google, ${prova}\n\nEstá tudo explicado no PDF. Qualquer dúvida, é só me chamar por aqui.`;
   const M={
    new:[(()=>{const I=issueOf(it);return I.frase?["Primeiro contato citando o detalhe",`${pn?`Oi, ${pn}, tudo bem?`:`${saud()}, tudo bem?`} Aqui é da TRUZAV, a gente cria sites para empresas da região.\n\n${I.frase}${I.q?" "+I.q:""}`]:null})(),
+        ["Pergunta rápida",`${pn?`Oi, ${pn}, tudo bem?`:`${saud()}, tudo bem?`} Aqui é da TRUZAV, a gente cria sites para empresas da região.\n\nUma pergunta rápida: hoje, quem procura ${(it.cat||"o serviço de vocês").replace(/\s*\(.*?\)/g,"").toLowerCase()} em ${it.city||"Viamão"} no Google encontra vocês?`],
+        ["Ideia de site",`${pn?`Oi, ${pn}, tudo bem?`:`${saud()}, tudo bem?`} Aqui é da TRUZAV, a gente cria sites para empresas da região.\n\nPassei pelo perfil ${deArt(n)} no Google e tive uma ideia de site para vocês, com ${DESTAQUE[segOf(it)]} e o WhatsApp a um clique. ${it.prev?"Já deixei uma prévia pronta. Posso te mandar por aqui?":"Quer ver como ficaria?"}`],
+        it.prev&&it.prev.nota&&["Nota no Google",`${pn?`Oi, ${pn}, tudo bem?`:`${saud()}, tudo bem?`} Aqui é da TRUZAV, a gente cria sites para empresas da região.\n\nVi que vocês têm nota ${String(it.prev.nota).replace(".",",")} no Google${it.prev.aval?`, com ${it.prev.aval} avaliações`:""}. É muita gente falando bem, mas quem chega pelo Google não encontra um site para conhecer melhor o trabalho de vocês. ${ideiaQ(it)}`],
         !pn&&["Descobrir quem decide",`${saud()}, tudo bem? Aqui é da TRUZAV, criamos sites para empresas da região.\n\nVi o perfil ${deArt(n)} no Google e tenho uma ideia para ajudar vocês a receber mais contatos por lá. Com quem eu posso falar sobre isso?`],
         ["Primeiro contato com proposta",pn?`Oi, ${pn}, tudo bem? ${apres}\n\nVi o perfil ${deArt(n)} no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`:`Oi, pessoal ${deArt(n)}, tudo bem? ${apres}\n\nVi o perfil de vocês no Google e preparei uma proposta pensando no que vocês fazem. Mando o PDF aqui, sem compromisso.\n\nSe fizer sentido, te explico tudo em 5 minutos, por mensagem ou ligação.`]],
    previa:[["Lembrete",`${oi} Passando para saber se você viu minha mensagem. Se preferir, te explico em um áudio rápido.`],["Enviar a proposta",enviar],hasP&&["Enviar a proposta citando comentário",enviarP]],
